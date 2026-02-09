@@ -1,0 +1,5 @@
+name: about-me-infra
+runtime: nodejs
+description: Infrastructure for about-me website
+config:
+  aws:region: us-east-1
