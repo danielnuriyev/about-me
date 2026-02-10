@@ -47,14 +47,21 @@ fi
 echo "Creating chat Lambda deployment package..."
 zip -r chat-lambda-function.zip . -x "*.git*" "*node_modules/.bin*" "*.DS_Store"
 
-# Get chat Lambda function name from Pulumi
+# Get chat Lambda function name and table name from Pulumi
 CHAT_FUNCTION_NAME=$(cd ../../infrastructure && pulumi stack output chatLambdaFunctionName 2>/dev/null || echo "about-me-chat-api")
+CHAT_TABLE_NAME=$(cd ../../infrastructure && pulumi stack output chatLogsTableName 2>/dev/null || echo "chat-conversations")
 
 # Update chat Lambda function
 echo "Updating chat Lambda function: $CHAT_FUNCTION_NAME"
 aws lambda update-function-code \
     --function-name $CHAT_FUNCTION_NAME \
     --zip-file fileb://chat-lambda-function.zip
+
+# Update environment variables
+echo "Updating environment variables for chat Lambda..."
+aws lambda update-function-configuration \
+    --function-name $CHAT_FUNCTION_NAME \
+    --environment "Variables={CHAT_LOGS_TABLE=$CHAT_TABLE_NAME}"
 
 # Clean up
 rm chat-lambda-function.zip

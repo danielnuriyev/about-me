@@ -37,6 +37,31 @@ cd ../lambda-chat
 npm install
 zip -r chat-lambda-function.zip .
 
+# Create DynamoDB table for chat logging
+echo "Creating DynamoDB table for chat conversations..."
+aws dynamodb create-table \
+  --table-name chat-conversations \
+  --attribute-definitions \
+    AttributeName=conversationId,AttributeType=S \
+    AttributeName=timestamp,AttributeType=S \
+    AttributeName=clientIP,AttributeType=S \
+  --key-schema \
+    AttributeName=conversationId,KeyType=HASH \
+    AttributeName=timestamp,KeyType=RANGE \
+  --global-secondary-indexes \
+    '[
+      {
+        "IndexName": "IPIndex",
+        "KeySchema": [
+          {"AttributeName": "clientIP", "KeyType": "HASH"},
+          {"AttributeName": "timestamp", "KeyType": "RANGE"}
+        ],
+        "Projection": {"ProjectionType": "ALL"}
+      }
+    ]' \
+  --billing-mode PAY_PER_REQUEST \
+  --endpoint-url=http://localhost:4566
+
 aws lambda create-function \
   --function-name about-me-chat-api \
   --runtime nodejs18.x \
@@ -44,6 +69,7 @@ aws lambda create-function \
   --handler index.handler \
   --zip-file fileb://chat-lambda-function.zip \
   --timeout 30 \
+  --environment "Variables={CHAT_LOGS_TABLE=chat-conversations}" \
   --endpoint-url=http://localhost:4566
 
 # Create API Gateway

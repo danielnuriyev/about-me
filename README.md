@@ -17,10 +17,36 @@ A single-page website about Daniel Nuriyev built with Svelte, featuring an AI-po
 - **GitHub Dark Theme**: Authentic GitHub dark theme with proper colors and styling
 - **Personal Profile**: Clean, responsive design showcasing personal information with GitHub profile photo
 - **Social Links**: Direct links to LinkedIn, GitHub, and engineering blog
-- **AI Chat Assistant**: Interactive chat powered by AWS Bedrock using Amazon Nova Micro
+- **AI Chat Assistant**: Interactive chat powered by AWS Bedrock using Amazon Nova Micro with security protections
+- **Conversation Logging**: All chat interactions stored in DynamoDB for monitoring and analytics
 - **Serverless Backend**: Two Lambda functions handling profile data and chat interactions
+- **Security Protections**: Rate limiting, origin validation, and content filtering
 - **Global CDN**: CloudFront distribution for fast content delivery
 - **Local Development**: Complete LocalStack setup for offline development
+
+## Security Features
+
+### Chat API Protection
+- **Origin Validation**: Only requests from allowed domains are accepted
+- **Rate Limiting**: 50 requests/hour, 200 requests/day per IP address
+- **Content Filtering**: Blocks potentially malicious content and scripts
+- **Request Size Limits**: Maximum 1000 characters per message, 20 messages in context
+- **CORS Restrictions**: Strict cross-origin resource sharing policies
+
+### Conversation Logging
+- **DynamoDB Storage**: All conversations stored with metadata (IP, timestamp, user agent)
+- **Structured Data**: Messages, responses, processing time, and status tracked
+- **Query Capabilities**: Search by conversation ID, IP address, or timestamp
+- **Monitoring**: Track usage patterns and detect anomalies
+- **Compliance**: Maintain conversation history for auditing purposes
+
+### Environment Variables
+Set the following environment variables for production:
+
+```bash
+ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+CHAT_LOGS_TABLE=chat-conversations
+```
 
 ## Project Structure
 

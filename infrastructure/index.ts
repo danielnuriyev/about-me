@@ -140,6 +140,53 @@ const chatBedrockPolicyAttachment = new aws.iam.RolePolicyAttachment("about-me-c
     policyArn: bedrockPolicy.arn,
 });
 
+// Create DynamoDB table for chat conversation logging
+const chatLogsTable = new aws.dynamodb.Table("chat-conversations", {
+    attributes: [
+        { name: "conversationId", type: "S" },
+        { name: "timestamp", type: "S" },
+        { name: "clientIP", type: "S" }
+    ],
+    hashKey: "conversationId",
+    rangeKey: "timestamp",
+    globalSecondaryIndexes: [
+        {
+            name: "IPIndex",
+            hashKey: "clientIP",
+            rangeKey: "timestamp",
+            projectionType: "ALL",
+        }
+    ],
+    billingMode: "PAY_PER_REQUEST",
+});
+
+// DynamoDB policy for Lambda
+const dynamoPolicy = new aws.iam.Policy("chat-dynamo-policy", {
+    policy: chatLogsTable.arn.apply(tableArn => JSON.stringify({
+        Version: "2012-10-17",
+        Statement: [
+            {
+                Effect: "Allow",
+                Action: [
+                    "dynamodb:PutItem",
+                    "dynamodb:Query",
+                    "dynamodb:Scan"
+                ],
+                Resource: [
+                    tableArn,
+                    `${tableArn}/index/*`
+                ]
+            }
+        ]
+    }))
+});
+
+// Attach DynamoDB policy to chat Lambda
+const chatDynamoPolicyAttachment = new aws.iam.RolePolicyAttachment("chat-dynamo-policy-attachment", {
+    role: chatLambdaRole.name,
+    policyArn: dynamoPolicy.arn,
+});
+
 // Create Lambda function
 const lambdaFunction = new aws.lambda.Function("about-me-api", {
     runtime: aws.lambda.Runtime.NodeJS18dX,
@@ -234,6 +281,7 @@ const chatLambdaPermission = new aws.lambda.Permission("chat-api-lambda-permissi
     sourceArn: pulumi.interpolate`${api.executionArn}/*/*`,
 });
 
-// Export the website URL and API URL
+// Export the website URL, API URL, and DynamoDB table name
 export const websiteUrl = cdn.domainName;
 export const apiUrl = deployment.invokeUrl;
+export const chatLogsTableName = chatLogsTable.name;
