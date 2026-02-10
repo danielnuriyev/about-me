@@ -22,7 +22,10 @@ export default [
 			globals: {
 				fetch: 'readonly',
 				setTimeout: 'readonly',
-				document: 'readonly'
+				setInterval: 'readonly',
+				clearInterval: 'readonly',
+				document: 'readonly',
+				console: 'readonly'
 			}
 		}
 	},
