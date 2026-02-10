@@ -7,7 +7,7 @@
 	<div class="profile">
 		<img src="https://avatars.githubusercontent.com/danielnuriyev" alt="Profile photo" class="profile-photo" />
 		<h1>Daniel Nuriyev</h1>
-		<p class="bio">Welcome to my personal website. This is a single page application built with Svelte.</p>
+		<p class="bio">To learn more about me, please, follow the links below or talk with my AI assistant.</p>
 
 		<div class="social-links">
 			<a href="https://www.linkedin.com/in/danielnuriyev/" target="_blank" rel="noopener noreferrer" class="social-link linkedin" aria-label="LinkedIn Profile">
@@ -98,6 +98,7 @@
 		max-width: 500px;
 		line-height: 1.6;
 		opacity: 0.9;
+		text-align: left;
 	}
 
 	.social-links {
