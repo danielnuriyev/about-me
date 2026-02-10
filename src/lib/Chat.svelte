@@ -68,14 +68,14 @@
 		// Add welcome message
 		messages = [{
 			role: 'assistant',
-			content: 'Hi! I\'m Daniel\'s AI assistant. Feel free to ask me anything about him, his work, or anything else you\'d like to know!'
+			content: 'Hi! I\'m Daniel\'s AI spokesbot. Feel free to ask me anything about him, his work, or anything else you\'d like to know!'
 		}];
 	});
 </script>
 
 <div class="chat-container">
 	<div class="chat-header">
-		<h3>💬 Chat with Daniel's AI Assistant</h3>
+		<h3>💬 Chat with my AI spokesbot</h3>
 	</div>
 
 	<div class="chat-messages">
@@ -119,7 +119,7 @@
 
 <style>
 	.chat-container {
-		max-width: 600px;
+		max-width: 800px;
 		margin: 2rem auto;
 		border: 1px solid #30363d;
 		border-radius: 12px;

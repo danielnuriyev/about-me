@@ -1,119 +1,13 @@
 <script>
 	// Basic about me page component
 	import Chat from '$lib/Chat.svelte';
-	import { onMount } from 'svelte';
-
-	let currentTime = '';
-	let weather = { temp: '--', feelsLike: '--', condition: 'Loading...', icon: '' };
-	let tempUnit = 'F';
-
-	onMount(() => {
-		// Update Eastern time every second
-		const updateTime = () => {
-			const now = new Date();
-			const easternTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
-			currentTime = easternTime.toLocaleTimeString('en-US', {
-				hour12: true,
-				hour: 'numeric',
-				minute: '2-digit',
-				second: '2-digit'
-			});
-		};
-
-		updateTime();
-		const timeInterval = setInterval(updateTime, 1000);
-
-		// Fetch weather data for Massachusetts (with fallback)
-		setTimeout(fetchWeather, 1000); // Delay to avoid blocking initial render
-
-		return () => {
-			clearInterval(timeInterval);
-		};
-	});
-
-	function fahrenheitToCelsius(f) {
-		if (f === '--') return '--';
-		return Math.round((f - 32) * 5/9);
-	}
-
-	function toggleTempUnit() {
-		tempUnit = tempUnit === 'F' ? 'C' : 'F';
-	}
-
-	$: displayTemp = tempUnit === 'F' ? 
-		(weather.temp === '--' ? '--' : Math.round(weather.temp)) : 
-		fahrenheitToCelsius(weather.temp);
-
-	$: displayFeelsLike = tempUnit === 'F' ? 
-		(weather.feelsLike === '--' ? '--' : Math.round(weather.feelsLike)) : 
-		fahrenheitToCelsius(weather.feelsLike);
-
-	async function fetchWeather() {
-		try {
-			// Using Open-Meteo API (free, no API key required)
-			// Boston, MA coordinates: 42.3601, -71.0589
-			// Using current parameter for more accurate real-time data including apparent temperature
-			const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=42.3601&longitude=-71.0589&current=temperature_2m,apparent_temperature,weather_code&temperature_unit=fahrenheit&windspeed_unit=mph&precipitation_unit=inch');
-
-			if (!response.ok) {
-				throw new Error('Weather API unavailable');
-			}
-
-			const data = await response.json();
-			const current = data.current;
-
-			// Map weather codes to conditions (simplified)
-			const weatherConditions = {
-				0: 'Clear sky',
-				1: 'Mainly clear',
-				2: 'Partly cloudy',
-				3: 'Overcast',
-				45: 'Foggy',
-				48: 'Depositing rime fog',
-				51: 'Light drizzle',
-				53: 'Moderate drizzle',
-				55: 'Dense drizzle',
-				61: 'Slight rain',
-				63: 'Moderate rain',
-				65: 'Heavy rain',
-				71: 'Slight snow',
-				73: 'Moderate snow',
-				75: 'Heavy snow',
-				77: 'Snow grains',
-				80: 'Slight rain showers',
-				81: 'Moderate rain showers',
-				82: 'Violent rain showers',
-				85: 'Slight snow showers',
-				86: 'Heavy snow showers',
-				95: 'Thunderstorm',
-				96: 'Thunderstorm with hail',
-				99: 'Heavy thunderstorm with hail'
-			};
-
-			weather = {
-				temp: current.temperature_2m,
-				feelsLike: current.apparent_temperature,
-				condition: weatherConditions[current.weather_code] || 'Unknown',
-				icon: '' // Open-Meteo doesn't provide icons, but we can add custom ones if needed
-			};
-		} catch (error) {
-			console.error('Weather fetch failed:', error);
-			// Fallback to a simple weather display
-			weather = {
-				temp: '--',
-				feelsLike: '--',
-				condition: 'Weather unavailable',
-				icon: ''
-			};
-		}
-	}
 </script>
 
 <main class="container">
 	<div class="profile">
 		<img src="https://avatars.githubusercontent.com/danielnuriyev" alt="Profile photo" class="profile-photo" />
 		<h1>Daniel Nuriyev</h1>
-		<p class="bio">To learn more about me, please, follow the links below or talk with my AI assistant.</p>
+		<p class="bio">To learn more about me, please, follow the links below or talk with my AI spokesbot.</p>
 
 		<div class="social-links">
 			<a href="https://www.linkedin.com/in/danielnuriyev/" target="_blank" rel="noopener noreferrer" class="social-link linkedin" aria-label="LinkedIn Profile">
@@ -139,48 +33,6 @@
 			</a>
 		</div>
 
-		<!-- Widgets Section -->
-		<div class="widgets">
-			<div class="widget time-widget">
-				<div class="widget-header">
-					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<circle cx="12" cy="12" r="10"></circle>
-						<polyline points="12,6 12,12 16,14"></polyline>
-					</svg>
-					<span>US Eastern Time</span>
-				</div>
-				<div class="widget-content">
-					<div class="time-display">{currentTime}</div>
-				</div>
-			</div>
-
-			<div class="widget weather-widget">
-				<div class="widget-header">
-					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-						<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9l-.707.707M14.828 6.343l.707-.707m-9.9 9.9l.707.707M21 15a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-					</svg>
-					<span>Massachusetts Weather</span>
-				</div>
-				<div class="widget-content">
-					{#if weather.icon}
-						<img src="https:{weather.icon}" alt="Weather icon" class="weather-icon" />
-					{/if}
-					<div class="weather-info">
-						<div class="temperature-row">
-							<div class="temperature">{displayTemp}°{tempUnit}</div>
-							<div class="feels-like-container">
-								<div class="feels-like">Feels like {displayFeelsLike}°{tempUnit}</div>
-								<button class="unit-toggle-icon" on:click={toggleTempUnit} title="Switch to {tempUnit === 'F' ? 'Celsius' : 'Fahrenheit'}">
-									{tempUnit === 'F' ? 'C' : 'F'}
-								</button>
-							</div>
-						</div>
-						<div class="condition">{weather.condition}</div>
-					</div>
-				</div>
-			</div>
-		</div>
 	</div>
 
 	<Chat />
@@ -306,126 +158,6 @@
 		transform: scale(1.1);
 	}
 
-	.widgets {
-		display: flex;
-		gap: 1.5rem;
-		justify-content: center;
-		margin-top: 1.5rem;
-		flex-wrap: wrap;
-	}
-
-	.widget {
-		background: #21262d;
-		border: 1px solid #30363d;
-		border-radius: 12px;
-		padding: 1rem;
-		min-width: 200px;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-		transition: transform 0.2s ease, box-shadow 0.2s ease;
-	}
-
-	.widget:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-	}
-
-	.widget-header {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		margin-bottom: 0.75rem;
-		font-size: 0.85rem;
-		color: #8b949e;
-		font-weight: 500;
-	}
-
-	.widget-header svg {
-		color: #58a6ff;
-	}
-
-	.widget-content {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-	}
-
-	.time-display {
-		font-size: 1.5rem;
-		font-weight: 600;
-		color: #f0f6fc;
-		font-variant-numeric: tabular-nums;
-		font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
-	}
-
-	.weather-icon {
-		width: 32px;
-		height: 32px;
-		filter: brightness(0) invert(1); /* Make weather icons white */
-	}
-
-	.weather-info {
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-	}
-
-	.temperature-row {
-		display: flex;
-		align-items: baseline;
-		gap: 0.75rem;
-	}
-
-	.temperature {
-		font-size: 1.5rem;
-		font-weight: 600;
-		color: #f0f6fc;
-	}
-
-	.feels-like {
-		font-size: 0.9rem;
-		color: #8b949e;
-		font-weight: 500;
-	}
-
-	.feels-like-container {
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
-	}
-
-	.unit-toggle-icon {
-		background: #30363d;
-		border: 1px solid #484f58;
-		color: #58a6ff;
-		cursor: pointer;
-		padding: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border-radius: 4px;
-		transition: all 0.2s ease;
-		width: 20px;
-		height: 20px;
-		font-size: 0.75rem;
-		font-weight: 700;
-		line-height: 1;
-	}
-
-	.unit-toggle-icon:hover {
-		background: #484f58;
-		color: #f0f6fc;
-		border-color: #58a6ff;
-	}
-
-	.condition {
-		font-size: 0.85rem;
-		color: #c9d1d9;
-		text-transform: capitalize;
-		margin-top: 0.5rem;
-		text-align: left;
-	}
-
-
 	@media (max-width: 640px) {
 		.social-links {
 			gap: 1rem;
@@ -439,34 +171,6 @@
 		.social-link svg {
 			width: 18px;
 			height: 18px;
-		}
-
-		.widgets {
-			flex-direction: column;
-			align-items: center;
-		}
-
-		.widget {
-			min-width: 250px;
-			max-width: 300px;
-		}
-
-		.time-display {
-			font-size: 1.25rem;
-		}
-
-		.temperature {
-			font-size: 1.25rem;
-		}
-
-		.feels-like {
-			font-size: 0.8rem;
-		}
-
-		.temperature-row {
-			flex-direction: column;
-			gap: 0.25rem;
-			align-items: flex-start;
 		}
 	}
 </style>

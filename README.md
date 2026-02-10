@@ -17,9 +17,7 @@ A single-page website about Daniel Nuriyev built with Svelte, featuring an AI-po
 - **GitHub Dark Theme**: Authentic GitHub dark theme with proper colors and styling
 - **Personal Profile**: Clean, responsive design showcasing personal information with GitHub profile photo
 - **Social Links**: Direct links to LinkedIn, GitHub, and engineering blog
-- **Time Widget**: Live US Eastern Time display with automatic updates
-- **Weather Widget**: Current weather conditions and "feels like" temperature for Massachusetts using Open-Meteo API
-- **AI Chat Assistant**: Interactive chat powered by AWS Bedrock using Amazon Nova Micro with security protections
+- **AI Spokesbot**: Interactive chat assistant powered by AWS Bedrock using Amazon Nova Micro with security protections
 - **Conversation Logging**: All chat interactions stored in DynamoDB for monitoring and analytics
 - **Serverless Backend**: Two Lambda functions handling profile data and chat interactions
 - **Security Protections**: Rate limiting, origin validation, and content filtering
