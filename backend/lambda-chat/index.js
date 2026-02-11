@@ -2,8 +2,29 @@ const { BedrockRuntimeClient, InvokeModelCommand } = require('@aws-sdk/client-be
 const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
 
 // Initialize clients
-const bedrockClient = new BedrockRuntimeClient({ region: process.env.AWS_REGION || 'us-east-1' });
-const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
+const region = process.env.AWS_REGION || 'us-east-1';
+const useRealBedrock = process.env.USE_REAL_BEDROCK === 'true';
+
+// Configure Bedrock client - use real AWS Bedrock if USE_REAL_BEDROCK=true
+const bedrockConfig = { region };
+if (useRealBedrock) {
+    // Use real AWS Bedrock endpoint, bypassing LocalStack
+    bedrockConfig.endpoint = `https://bedrock-runtime.${region}.amazonaws.com`;
+
+    console.log('Environment credentials available:', {
+        hasAccessKey: !!process.env.AWS_ACCESS_KEY_ID,
+        hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY,
+        hasSessionToken: !!process.env.AWS_SESSION_TOKEN,
+        accessKeyPrefix: process.env.AWS_ACCESS_KEY_ID?.substring(0, 4) + '...',
+        region: process.env.AWS_DEFAULT_REGION
+    });
+
+    // Don't set explicit credentials - let AWS SDK use default credential chain
+    // The Lambda container should inherit AWS credentials from the host
+}
+
+const bedrockClient = new BedrockRuntimeClient(bedrockConfig);
+const dynamoClient = new DynamoDBClient({ region });
 
 // Security configuration
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:3000').split(',');
@@ -369,7 +390,7 @@ async function invokeBedrockModel(prompt) {
         return responseBody.output?.message?.content[0]?.text || 'I apologize, but I couldn\'t generate a response right now.';
 
     } catch (error) {
-        console.error('Error invoking Bedrock model:', error);
+        console.error('Error invoking Bedrock model:', error.message);
 
         // Fallback response if Bedrock fails
         return 'I apologize, but I\'m having trouble connecting to my knowledge base right now. Daniel is a skilled software developer with expertise in full-stack development, cloud infrastructure, and modern web technologies. Feel free to ask me about his background, skills, or projects!';

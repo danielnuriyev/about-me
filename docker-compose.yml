@@ -12,10 +12,13 @@ services:
       SERVICES: lambda,apigateway,s3,cloudfront,iam,bedrock
       DATA_DIR: /tmp/localstack/data
       DOCKER_HOST: unix:///var/run/docker.sock
-      HOST_TMP_FOLDER: ${TMPDIR:-/tmp/}localstack
+      # Share AWS credentials with Lambda containers
+      LAMBDA_SHARE_CREDENTIALS: 1
+      AWS_SHARED_CREDENTIALS_FILE: /root/.aws/credentials
+      AWS_CONFIG_FILE: /root/.aws/config
     volumes:
-      - "${TMPDIR:-/tmp}/localstack:/tmp/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
+      - "${HOME}/.aws:/root/.aws:ro"  # Mount AWS credentials for real Bedrock access
     networks:
       - localstack
 

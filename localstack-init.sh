@@ -2,7 +2,7 @@
 
 # Wait for LocalStack to be ready
 echo "Waiting for LocalStack to be ready..."
-while ! curl -s http://localhost:4566/_localstack/health | grep -q '"apigateway":"available"'; do
+while ! curl -s http://localhost:4566/_localstack/health | grep '"apigateway"' | grep -q 'available\|running'; do
   sleep 2
 done
 
@@ -62,6 +62,26 @@ aws dynamodb create-table \
   --billing-mode PAY_PER_REQUEST \
   --endpoint-url=http://localhost:4566
 
+# Build environment variables for Lambda
+ENV_VARS="CHAT_LOGS_TABLE=chat-conversations,USE_REAL_BEDROCK=${USE_REAL_BEDROCK:-false}"
+
+# Configure for real Bedrock access
+if [ "${USE_REAL_BEDROCK:-false}" = "true" ]; then
+    # Verify AWS credentials are available
+    if ! aws sts get-caller-identity >/dev/null 2>&1; then
+        echo "❌ Error: Valid AWS credentials required for Bedrock mode"
+        exit 1
+    fi
+
+    # Set region and profile for Lambda
+    AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-$(aws configure get region 2>/dev/null || echo 'us-east-1')}
+    AWS_PROFILE=${AWS_PROFILE:-default}
+    ENV_VARS="$ENV_VARS,AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION,AWS_PROFILE=$AWS_PROFILE"
+
+    echo "🔑 Configured Lambda to use host AWS credentials for Bedrock"
+    echo "📍 Region: $AWS_DEFAULT_REGION, Profile: $AWS_PROFILE"
+fi
+
 aws lambda create-function \
   --function-name about-me-chat-api \
   --runtime nodejs18.x \
@@ -69,7 +89,7 @@ aws lambda create-function \
   --handler index.handler \
   --zip-file fileb://chat-lambda-function.zip \
   --timeout 30 \
-  --environment "Variables={CHAT_LOGS_TABLE=chat-conversations}" \
+  --environment "Variables={$ENV_VARS}" \
   --endpoint-url=http://localhost:4566
 
 # Create API Gateway
