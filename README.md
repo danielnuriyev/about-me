@@ -269,6 +269,11 @@ Located in `scripts/` directory:
   - `./scripts/redeploy-lambda.sh profile` - Redeploy profile Lambda function
   - `./scripts/redeploy-lambda.sh` - Interactive selection menu
 
+- `configure-limits.sh` - Configure concurrency and rate limiting for production
+  - `./scripts/configure-limits.sh lambda 10` - Set Lambda concurrency to 10 (default)
+  - `./scripts/configure-limits.sh apigateway 3 9` - Set API Gateway rate (3/s) and burst (9/s, default)
+  - `./scripts/configure-limits.sh status` - Check current limits
+
 - `setup-bedrock.sh` - Switch between LocalStack mock and real AWS Bedrock
   - `./scripts/setup-bedrock.sh mock` - Use LocalStack mocks (default, free)
   - `./scripts/setup-bedrock.sh real` - Use real AWS Bedrock (requires active session)
@@ -373,6 +378,34 @@ USE_REAL_BEDROCK=true  # Enable real AWS Bedrock (requires AWS credentials)
 AWS_PROFILE=default    # AWS CLI profile to use
 ```
 
+### Concurrency & Rate Limiting Configuration
+
+#### Lambda Concurrency Limits
+```bash
+# Default: 10 concurrent executions (set in infrastructure/index.ts)
+# Override via CLI:
+aws lambda put-function-concurrency \
+  --function-name about-me-chat-api \
+  --reserved-concurrent-executions 10
+
+# Via helper script:
+./scripts/configure-limits.sh lambda 10
+```
+
+#### API Gateway Throttling
+```bash
+# Default: 3 requests/second, 9 burst (set in infrastructure/index.ts)
+# Override via CLI:
+aws apigateway create-usage-plan \
+  --name chat-usage-plan \
+  --throttle-rate-limit 3 \
+  --throttle-burst-limit 9 \
+  --api-stages apiId=your-api-id,stage=prod
+
+# Via helper script:
+./scripts/configure-limits.sh apigateway 3 9
+```
+
 ### Customization
 
 1. **Personal Information**: Edit `backend/lambda/index.js`
@@ -385,6 +418,7 @@ AWS_PROFILE=default    # AWS CLI profile to use
 #### Chat API Protection
 - **Origin Validation**: Only allowed domains accepted
 - **Rate Limiting**: 10 messages per IP per hour (frontend + backend)
+- **Concurrency Limits**: Lambda: 10 concurrent executions, API Gateway: 3/sec with 9 burst
 - **Content Filtering**: Blocks malicious scripts and content
 - **Request Limits**: 1000 chars/message, 20 messages in context
 - **CORS Restrictions**: Strict cross-origin policies
@@ -443,6 +477,45 @@ npm run build -- --emptyOutDir
 - **STS**: Security token service
 
 **Note**: LocalStack does not support Bedrock mocking. Use real AWS Bedrock for AI functionality.
+
+#### LocalStack Concurrency Limits
+LocalStack supports some concurrency features:
+- Lambda reserved concurrency via `put-function-concurrency`
+- Basic API Gateway throttling (limited support)
+- Custom rate limiting via Lambda function code (implemented)
+
+For full production concurrency control, deploy to AWS with proper limits.
+
+### Monitoring & Adjusting Limits
+
+#### Check Current Usage
+```bash
+# Lambda concurrency metrics
+aws cloudwatch get-metric-statistics \
+  --namespace AWS/Lambda \
+  --metric-name ConcurrentExecutions \
+  --dimensions Name=FunctionName,Value=about-me-chat-api \
+  --start-time 2024-01-01T00:00:00Z \
+  --end-time 2024-12-31T23:59:59Z \
+  --period 3600 \
+  --statistics Maximum
+
+# API Gateway throttling metrics
+aws cloudwatch get-metric-statistics \
+  --namespace AWS/ApiGateway \
+  --metric-name Count \
+  --dimensions Name=ApiName,Value=about-me-api Name=Method,Value=POST Name=Resource,Value=/chat \
+  --start-time 2024-01-01T00:00:00Z \
+  --end-time 2024-12-31T23:59:59Z \
+  --period 3600 \
+  --statistics Sum
+```
+
+#### Adjust Limits Based on Usage
+- **High concurrency**: Increase Lambda reserved concurrency
+- **High traffic**: Increase API Gateway throttling limits
+- **Cost optimization**: Decrease limits during low-traffic periods
+- **Performance issues**: Monitor CloudWatch metrics and adjust accordingly
 
 ### Getting Help
 

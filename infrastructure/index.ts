@@ -202,6 +202,7 @@ const chatLambdaFunction = new aws.lambda.Function("about-me-chat-api", {
     handler: "index.handler",
     role: chatLambdaRole.arn,
     timeout: 30, // Longer timeout for AI responses
+    reservedConcurrentExecutions: 10, // Limit to 10 concurrent executions
 });
 
 // Create API Gateway
@@ -279,6 +280,20 @@ const chatLambdaPermission = new aws.lambda.Permission("chat-api-lambda-permissi
     function: chatLambdaFunction.name,
     principal: "apigateway.amazonaws.com",
     sourceArn: pulumi.interpolate`${api.executionArn}/*/*`,
+});
+
+// Create API Gateway Usage Plan with throttling limits
+const usagePlan = new aws.apigateway.UsagePlan("chat-usage-plan", {
+    name: "chat-usage-plan",
+    description: "Usage plan for chat API with rate limiting",
+    throttleSettings: {
+        rateLimit: 3,   // 3 requests per second
+        burstLimit: 9,  // 9 burst requests (3x rate limit)
+    },
+    apiStages: [{
+        apiId: api.id,
+        stage: deployment.stageName,
+    }],
 });
 
 // Export the website URL, API URL, and DynamoDB table name
