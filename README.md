@@ -20,7 +20,7 @@ A single-page website about Daniel Nuriyev built with Svelte, featuring an AI-po
 - **GitHub Dark Theme**: Authentic GitHub dark theme with proper colors and styling
 - **Personal Profile**: Clean, responsive design showcasing personal information with GitHub profile photo
 - **Social Links**: Direct links to LinkedIn, GitHub, and engineering blog
-- **AI Spokesbot**: Interactive chat assistant powered by AWS Bedrock using Amazon Nova Micro with security protections
+- **AI Spokesbot**: Interactive chat assistant powered by AWS Bedrock using Amazon Nova Micro with security protections (10 messages per IP per hour)
 - **Conversation Logging**: All chat interactions stored in DynamoDB for monitoring and analytics
 - **Serverless Backend**: Two Lambda functions handling profile data and chat interactions
 - **Security Protections**: Rate limiting, origin validation, and content filtering
@@ -153,10 +153,37 @@ aws sso login --profile default
 
 ### Development Workflow
 
+#### Frontend Development
+1. **Edit files** (e.g., `src/lib/Chat.svelte`, `src/routes/+page.svelte`)
+2. **Save changes** - Dev server auto-rebuilds and hot-reloads
+3. **View changes** instantly in browser (no manual refresh needed)
+4. **Check console** for any errors or warnings
+
+#### Backend Development
 1. **Make code changes** (e.g., edit `backend/lambda-chat/index.js`)
 2. **Redeploy Lambda**: `./scripts/redeploy-lambda.sh chat`
 3. **Test changes**: Use chat interface at `http://localhost:5174/`
 4. **Repeat** for iterative development
+
+#### Troubleshooting Frontend Changes
+
+**If changes don't appear in browser:**
+```bash
+# Check if dev server is running
+curl -s http://localhost:5173 || curl -s http://localhost:5174
+
+# If not running, start it
+npm run dev
+
+# Force browser refresh (Ctrl+Shift+R)
+# Or clear Vite cache and restart
+rm -rf .svelte-kit && npm run dev
+```
+
+**Expected behavior:**
+- Save file → Terminal shows: `[vite] hot updated: /src/lib/Chat.svelte`
+- Browser updates instantly (Hot Module Replacement)
+- No full page reload needed
 
 ### Project Structure
 
@@ -357,7 +384,7 @@ AWS_PROFILE=default    # AWS CLI profile to use
 
 #### Chat API Protection
 - **Origin Validation**: Only allowed domains accepted
-- **Rate Limiting**: 50 requests/hour, 200 requests/day per IP
+- **Rate Limiting**: 10 messages per IP per hour (frontend + backend)
 - **Content Filtering**: Blocks malicious scripts and content
 - **Request Limits**: 1000 chars/message, 20 messages in context
 - **CORS Restrictions**: Strict cross-origin policies

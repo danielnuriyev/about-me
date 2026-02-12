@@ -30,8 +30,7 @@ const dynamoClient = new DynamoDBClient({ region });
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:3000').split(',');
 
 const RATE_LIMITS = {
-    requestsPerHour: 50,    // Max requests per IP per hour
-    requestsPerDay: 200,    // Max requests per IP per day
+    requestsPerHour: 10,    // Max requests per IP per hour
     maxMessageLength: 1000, // Max characters per message
     maxMessagesPerRequest: 20 // Max conversation history messages
 };
@@ -50,11 +49,10 @@ function validateOrigin(event) {
 function checkRateLimit(clientIP) {
     const now = Date.now();
     const hour = Math.floor(now / (1000 * 60 * 60));
-    const day = Math.floor(now / (1000 * 60 * 60 * 24));
 
     const key = `${clientIP}`;
     if (!rateLimitStore.has(key)) {
-        rateLimitStore.set(key, { hourly: new Map(), daily: new Map() });
+        rateLimitStore.set(key, { hourly: new Map() });
     }
 
     const limits = rateLimitStore.get(key);
@@ -65,11 +63,6 @@ function checkRateLimit(clientIP) {
             limits.hourly.delete(timestamp);
         }
     }
-    for (const [timestamp] of limits.daily) {
-        if (timestamp < day - 1) {
-            limits.daily.delete(timestamp);
-        }
-    }
 
     // Check hourly limit
     const hourlyRequests = limits.hourly.get(hour) || 0;
@@ -77,15 +70,8 @@ function checkRateLimit(clientIP) {
         return { allowed: false, reason: 'Hourly rate limit exceeded' };
     }
 
-    // Check daily limit
-    const dailyRequests = limits.daily.get(day) || 0;
-    if (dailyRequests >= RATE_LIMITS.requestsPerDay) {
-        return { allowed: false, reason: 'Daily rate limit exceeded' };
-    }
-
-    // Increment counters
+    // Increment counter
     limits.hourly.set(hour, hourlyRequests + 1);
-    limits.daily.set(day, dailyRequests + 1);
 
     return { allowed: true };
 }

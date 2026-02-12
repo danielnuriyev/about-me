@@ -4,16 +4,30 @@
 	let messages = [];
 	let inputMessage = '';
 	let isLoading = false;
+	let messageCount = 0;
+	let rateLimitReached = false;
+	const MAX_MESSAGES = 10;
 
 	// Function to send message to backend
 	async function sendMessage() {
 		if (!inputMessage.trim() || isLoading) return;
+
+		// Check rate limit
+		if (messageCount >= MAX_MESSAGES) {
+			messages = [...messages, {
+				role: 'assistant',
+				content: `You've reached the maximum of ${MAX_MESSAGES} messages per session. This limit helps ensure fair usage for all visitors.`
+			}];
+			rateLimitReached = true;
+			return;
+		}
 
 		const userMessage = inputMessage.trim();
 		inputMessage = '';
 
 		// Add user message to chat
 		messages = [...messages, { role: 'user', content: userMessage }];
+		messageCount++;
 		isLoading = true;
 
 	try {
@@ -65,11 +79,22 @@
 		}
 	}
 
+	// Scroll to profile section
+	function scrollToProfile() {
+		const profileElement = document.getElementById('profile');
+		if (profileElement) {
+			profileElement.scrollIntoView({
+				behavior: 'smooth',
+				block: 'start'
+			});
+		}
+	}
+
 	onMount(() => {
 		// Add welcome message
 		messages = [{
 			role: 'assistant',
-			content: 'Hi! I\'m dAnIel, Daniel\'s AI spokesbot. Feel free to ask me anything about him, his work, or anything else you\'d like to know!'
+			content: 'Hi! I\'m dAnIel, Daniel\'s AI spokesbot. Feel free to ask me anything about his professional skills.'
 		}];
 	});
 </script>
@@ -100,22 +125,37 @@
 		{/if}
 	</div>
 
+	{#if messageCount >= MAX_MESSAGES - 1 && !rateLimitReached}
+		<div class="rate-limit-warning">
+			⚠️ {MAX_MESSAGES - messageCount} message{MAX_MESSAGES - messageCount === 1 ? '' : 's'} remaining
+		</div>
+	{/if}
+
 	<div class="chat-input">
 		<textarea
 			bind:value={inputMessage}
 			on:keydown={handleKeydown}
-			placeholder="Type your message here..."
+			placeholder={rateLimitReached ? "Message limit reached" : "Type your message here..."}
 			rows="1"
-			disabled={isLoading}
+			disabled={isLoading || rateLimitReached}
 		></textarea>
 		<button
 			on:click={sendMessage}
-			disabled={isLoading || !inputMessage.trim()}
+			disabled={isLoading || !inputMessage.trim() || rateLimitReached}
 			class="send-button"
 		>
-			{isLoading ? '...' : 'Send'}
+			{isLoading ? '...' : rateLimitReached ? 'Limit Reached' : 'Send'}
 		</button>
 	</div>
+
+	{#if rateLimitReached}
+		<div class="rate-limit-actions">
+			<p>Want to learn more about me?</p>
+			<button class="profile-link" on:click={scrollToProfile}>
+				👆 Check out my profile above
+			</button>
+		</div>
+	{/if}
 
 	<div class="chat-footer">
 		<a
@@ -218,6 +258,7 @@
 		border: 1px solid #30363d;
 		border-bottom-left-radius: 4px;
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+		text-align: left;
 	}
 
 	.message.loading .message-content {
@@ -306,6 +347,32 @@
 		color: #8b949e;
 		cursor: not-allowed;
 		box-shadow: none;
+	}
+
+	.rate-limit-warning {
+		padding: 0.75rem 1rem;
+		background: #bb800926;
+		border: 1px solid #bb80094d;
+		border-radius: 6px;
+		margin: 0 1rem 0.5rem 1rem;
+		color: #f85149;
+		font-size: 0.9rem;
+		font-weight: 500;
+		text-align: center;
+	}
+
+	.rate-limit-actions {
+		padding: 1rem;
+		text-align: center;
+		border-top: 1px solid #30363d;
+		background: #161b22;
+		margin-top: 0.5rem;
+	}
+
+	.rate-limit-actions p {
+		margin: 0 0 0.75rem 0;
+		color: #c9d1d9;
+		font-size: 0.95rem;
 	}
 
 	.chat-footer {

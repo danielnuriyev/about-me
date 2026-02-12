@@ -4,7 +4,7 @@
 </script>
 
 <main class="container">
-	<div class="profile">
+	<div class="profile" id="profile">
 		<img src="https://avatars.githubusercontent.com/danielnuriyev" alt="Profile photo" class="profile-photo" />
 		<h1>Daniel Nuriyev</h1>
 		<p class="bio">To learn more about me, please, follow the links below or talk with my AI spokesbot.</p>
