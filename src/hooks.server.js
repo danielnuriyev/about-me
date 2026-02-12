@@ -4,7 +4,7 @@ export async function handle({ event, resolve }) {
 	if (event.request.url.endsWith('/api/chat') && event.request.method === 'POST') {
 		try {
 			const body = await event.request.json();
-			const chatApiUrl = 'http://localhost:4566/restapis/pvlq39vakd/prod/_user_request_/chat';
+			const chatApiUrl = 'http://localhost:4566/restapis/nuastlrrlq/prod/_user_request_/chat';
 
 			const response = await fetch(chatApiUrl, {
 				method: 'POST',

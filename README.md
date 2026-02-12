@@ -87,6 +87,26 @@ Visit `http://localhost:5173` to see your local development site.
    npm run dev
    ```
 
+### Lambda Development Workflow
+
+After making changes to Lambda function code:
+
+#### Quick Redeploy (Recommended)
+```bash
+# Redeploy specific Lambda function
+./scripts/redeploy-lambda.sh chat     # For chat Lambda changes
+./scripts/redeploy-lambda.sh profile  # For profile Lambda changes
+
+# Or use interactive menu
+./scripts/redeploy-lambda.sh
+```
+
+This automatically:
+- Installs dependencies (`npm install`)
+- Creates deployment package (`zip`)
+- Updates Lambda function in LocalStack
+- Cleans up temporary files
+
 ### Advanced Setup (Real AWS Bedrock)
 
 ⚠️ **Important**: LocalStack does not support Bedrock mocking. For real AWS Bedrock testing with session tokens (SAML/corporate credentials):
@@ -130,6 +150,13 @@ aws sso login --profile default
 - Corporate accounts may have additional AI service restrictions
 
 **Note**: Without proper Bedrock access, chat will show fallback responses.
+
+### Development Workflow
+
+1. **Make code changes** (e.g., edit `backend/lambda-chat/index.js`)
+2. **Redeploy Lambda**: `./scripts/redeploy-lambda.sh chat`
+3. **Test changes**: Use chat interface at `http://localhost:5174/`
+4. **Repeat** for iterative development
 
 ### Project Structure
 
@@ -209,6 +236,11 @@ Located in `scripts/` directory:
 - `bedrock-session-wrapper.sh` - Manage AWS session token for LocalStack with real Bedrock
   - `./scripts/bedrock-session-wrapper.sh extract` - Show current credentials and expiration
   - `./scripts/bedrock-session-wrapper.sh check` - Check if session token is still valid
+
+- `redeploy-lambda.sh` - Quick redeploy of Lambda functions after code changes
+  - `./scripts/redeploy-lambda.sh chat` - Redeploy chat Lambda function
+  - `./scripts/redeploy-lambda.sh profile` - Redeploy profile Lambda function
+  - `./scripts/redeploy-lambda.sh` - Interactive selection menu
 
 - `setup-bedrock.sh` - Switch between LocalStack mock and real AWS Bedrock
   - `./scripts/setup-bedrock.sh mock` - Use LocalStack mocks (default, free)
