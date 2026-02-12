@@ -11,16 +11,16 @@ if (useRealBedrock) {
     // Use real AWS Bedrock endpoint, bypassing LocalStack
     bedrockConfig.endpoint = `https://bedrock-runtime.${region}.amazonaws.com`;
 
-    console.log('Environment credentials available:', {
-        hasAccessKey: !!process.env.AWS_ACCESS_KEY_ID,
-        hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY,
-        hasSessionToken: !!process.env.AWS_SESSION_TOKEN,
-        accessKeyPrefix: process.env.AWS_ACCESS_KEY_ID?.substring(0, 4) + '...',
-        region: process.env.AWS_DEFAULT_REGION
-    });
-
-    // Don't set explicit credentials - let AWS SDK use default credential chain
-    // The Lambda container should inherit AWS credentials from the host
+    // Use credentials from environment variables when using real Bedrock
+    // This is necessary because LocalStack's Lambda environment doesn't automatically
+    // pick up the mounted ~/.aws/credentials from the host.
+    if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+        bedrockConfig.credentials = {
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+            sessionToken: process.env.AWS_SESSION_TOKEN // required for temporary credentials
+        };
+    }
 }
 
 const bedrockClient = new BedrockRuntimeClient(bedrockConfig);
@@ -366,7 +366,11 @@ async function invokeBedrockModel(prompt) {
             messages: [
                 {
                     role: 'user',
-                    content: prompt
+                    content: [
+                        {
+                            text: prompt
+                        }
+                    ]
                 }
             ],
             inferenceConfig: {

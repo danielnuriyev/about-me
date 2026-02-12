@@ -50,7 +50,7 @@ docker-compose up -d
 echo "⏳ Waiting for LocalStack to be ready..."
 sleep 5
 
-./localstack-init.sh
+./scripts/localstack-init.sh
 
 echo ""
 echo "✅ Setup complete!"

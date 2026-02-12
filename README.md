@@ -62,7 +62,7 @@ npm install
 ```bash
 # Start LocalStack (AWS services locally)
 docker-compose up -d
-./localstack-init.sh
+./scripts/localstack-init.sh
 
 # Start the development server
 npm run dev
@@ -79,7 +79,7 @@ Visit `http://localhost:5173` to see your local development site.
 1. **Start LocalStack services**:
    ```bash
    docker-compose up -d
-   ./localstack-init.sh
+   ./scripts/localstack-init.sh
    ```
 
 2. **Start development server**:
@@ -89,31 +89,47 @@ Visit `http://localhost:5173` to see your local development site.
 
 ### Advanced Setup (Real AWS Bedrock)
 
-For testing with real AWS Bedrock instead of LocalStack mocks:
+⚠️ **Important**: LocalStack does not support Bedrock mocking. For real AWS Bedrock testing with session tokens (SAML/corporate credentials):
 
-1. **Configure AWS credentials**:
-   ```bash
-   aws configure
-   # Or set environment variables:
-   # export AWS_ACCESS_KEY_ID=your_key
-   # export AWS_SECRET_ACCESS_KEY=your_secret
-   ```
+#### Quick Start
 
-2. **Switch to real Bedrock mode**:
-   ```bash
-   ./setup-bedrock.sh real
-   ```
+```bash
+# 1. Authenticate with your corporate SSO (if needed)
+aws sso login --profile default
 
-3. **Start development**:
-   ```bash
-   npm run dev
-   ```
+# 2. Check if your session token is still valid
+./scripts/bedrock-session-wrapper.sh check
 
-**Note**: Real AWS Bedrock requires:
+# 3. Deploy LocalStack with real Bedrock
+./scripts/setup-bedrock.sh real
+
+# 4. Start development
+npm run dev
+```
+
+#### Session Token Management
+
+Your AWS session token (from SAML/corporate SSO) expires after ~1 hour. When it expires:
+
+```bash
+# Check if token is still valid
+./scripts/bedrock-session-wrapper.sh check
+
+# Extract current credentials and see expiration time
+./scripts/bedrock-session-wrapper.sh extract
+
+# If expired, re-authenticate and redeploy
+aws sso login --profile default
+./scripts/setup-bedrock.sh real
+```
+
+**Prerequisites for Real AWS Bedrock**:
 - AWS account with Bedrock access enabled
 - Access to Amazon Nova Micro model (may require explicit request in AWS console)
 - IAM permissions for `bedrock:InvokeModel`
 - Corporate accounts may have additional AI service restrictions
+
+**Note**: Without proper Bedrock access, chat will show fallback responses.
 
 ### Project Structure
 
@@ -134,8 +150,8 @@ about-me/
 ├── static/                # Static assets (images, etc.)
 ├── .github/workflows/     # CI/CD pipelines
 ├── docker-compose.yml     # LocalStack configuration
-├── setup-bedrock.sh      # Bedrock mode switcher
-└── localstack-init.sh    # LocalStack resource initialization
+├── scripts/setup-bedrock.sh      # Bedrock mode switcher
+└── scripts/localstack-init.sh    # LocalStack resource initialization
 ```
 
 ## Testing
@@ -185,6 +201,22 @@ npm run format
 # Type checking (if using TypeScript)
 npm run check
 ```
+
+### Utility Scripts
+
+Located in `scripts/` directory:
+
+- `bedrock-session-wrapper.sh` - Manage AWS session token for LocalStack with real Bedrock
+  - `./scripts/bedrock-session-wrapper.sh extract` - Show current credentials and expiration
+  - `./scripts/bedrock-session-wrapper.sh check` - Check if session token is still valid
+
+- `setup-bedrock.sh` - Switch between LocalStack mock and real AWS Bedrock
+  - `./scripts/setup-bedrock.sh mock` - Use LocalStack mocks (default, free)
+  - `./scripts/setup-bedrock.sh real` - Use real AWS Bedrock (requires active session)
+
+- `scripts/localstack-init.sh` - Initialize LocalStack with AWS resources
+
+- `deploy.sh`, `deploy-infrastructure.sh`, `deploy-lambda.sh`, `deploy-frontend.sh` - Production deployment scripts
 
 ## Deployment to AWS
 
@@ -257,6 +289,16 @@ curl https://your-api-gateway-url/prod/_user_request_/profile
 ```
 
 ## Configuration
+
+### Environment Files
+
+#### .env.local (Local Development)
+```bash
+VITE_API_GATEWAY_ID=pvlq39vakd
+```
+- Contains the LocalStack API Gateway ID for your current deployment
+- Update this when you restart LocalStack (new ID is generated each time)
+- See the deployment output of `./scripts/setup-bedrock.sh real` for the new ID
 
 ### Environment Variables
 
@@ -339,7 +381,9 @@ npm run build -- --emptyOutDir
 - **S3**: File storage and static hosting
 - **DynamoDB**: NoSQL database for chat logs
 - **IAM**: Identity and access management
-- **Bedrock**: AI model integration (mock or real)
+- **STS**: Security token service
+
+**Note**: LocalStack does not support Bedrock mocking. Use real AWS Bedrock for AI functionality.
 
 ### Getting Help
 

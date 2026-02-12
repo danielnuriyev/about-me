@@ -16,19 +16,20 @@
 		messages = [...messages, { role: 'user', content: userMessage }];
 		isLoading = true;
 
-		try {
-			const response = await fetch('/api/chat', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					message: userMessage,
-					context: messages.slice(-10) // Send last 10 messages for context
-				})
-			});
+	try {
+		// Use SvelteKit server endpoint to avoid CORS issues
+		const response = await fetch('/api/chat', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				message: userMessage,
+				context: messages.slice(-10) // Send last 10 messages for context
+			})
+		});
 
-			const data = await response.json();
+		const data = await response.json();
 
 			if (response.ok) {
 				messages = [...messages, { role: 'assistant', content: data.response }];
@@ -68,7 +69,7 @@
 		// Add welcome message
 		messages = [{
 			role: 'assistant',
-			content: 'Hi! I\'m Daniel\'s AI spokesbot. Feel free to ask me anything about him, his work, or anything else you\'d like to know!'
+			content: 'Hi! I\'m dAnIel, Daniel\'s AI spokesbot. Feel free to ask me anything about him, his work, or anything else you\'d like to know!'
 		}];
 	});
 </script>

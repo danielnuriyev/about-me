@@ -73,13 +73,24 @@ if [ "${USE_REAL_BEDROCK:-false}" = "true" ]; then
         exit 1
     fi
 
-    # Set region and profile for Lambda
+    # Extract credentials from ~/.aws/credentials file
+    CREDS_FILE="${HOME}/.aws/credentials"
+    AWS_ACCESS_KEY_ID=$(grep -A 10 "^\[default\]" "$CREDS_FILE" | grep "aws_access_key_id" | cut -d= -f2 | xargs)
+    AWS_SECRET_ACCESS_KEY=$(grep -A 10 "^\[default\]" "$CREDS_FILE" | grep "aws_secret_access_key" | cut -d= -f2 | xargs)
+    AWS_SESSION_TOKEN=$(grep -A 10 "^\[default\]" "$CREDS_FILE" | grep "aws_session_token" | cut -d= -f2 | xargs)
     AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-$(aws configure get region 2>/dev/null || echo 'us-east-1')}
-    AWS_PROFILE=${AWS_PROFILE:-default}
-    ENV_VARS="$ENV_VARS,AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION,AWS_PROFILE=$AWS_PROFILE"
 
-    echo "🔑 Configured Lambda to use host AWS credentials for Bedrock"
-    echo "📍 Region: $AWS_DEFAULT_REGION, Profile: $AWS_PROFILE"
+    if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+        echo "❌ Error: Could not extract credentials from $CREDS_FILE"
+        exit 1
+    fi
+
+    # Pass credentials to Lambda function
+    ENV_VARS="$ENV_VARS,AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY,AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN,AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION"
+
+    echo "🔑 Configured Lambda with real AWS credentials for Bedrock"
+    echo "📍 Region: $AWS_DEFAULT_REGION"
+    echo "⚠️  Session token will expire - re-run this when you need to refresh"
 fi
 
 aws lambda create-function \
