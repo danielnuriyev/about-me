@@ -16,7 +16,7 @@ export AWS_ENDPOINT_URL=http://localhost:4566
 
 # Create S3 bucket
 echo "Creating S3 bucket..."
-aws s3 mb s3://about-me-site --endpoint-url=http://localhost:4566
+aws s3 mb s3://dn-about-me --endpoint-url=http://localhost:4566
 
 # Create Lambda function
 echo "Creating Lambda function..."
@@ -62,8 +62,19 @@ aws dynamodb create-table \
   --billing-mode PAY_PER_REQUEST \
   --endpoint-url=http://localhost:4566
 
+# Create DynamoDB table for rate limiting
+echo "Creating DynamoDB table for rate limits..."
+aws dynamodb create-table \
+  --table-name rate-limits \
+  --attribute-definitions \
+    AttributeName=clientIP,AttributeType=S \
+  --key-schema \
+    AttributeName=clientIP,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST \
+  --endpoint-url=http://localhost:4566
+
 # Build environment variables for Lambda
-ENV_VARS="CHAT_LOGS_TABLE=chat-conversations,USE_REAL_BEDROCK=${USE_REAL_BEDROCK:-false}"
+ENV_VARS="CHAT_LOGS_TABLE=chat-conversations,RATE_LIMIT_TABLE=rate-limits,USE_REAL_BEDROCK=${USE_REAL_BEDROCK:-false}"
 
 # Configure for real Bedrock access
 if [ "${USE_REAL_BEDROCK:-false}" = "true" ]; then
@@ -165,6 +176,28 @@ aws apigateway put-integration \
   --uri arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:000000000000:function:about-me-chat-api/invocations \
   --endpoint-url=http://localhost:4566
 
+# Create usage plan with throttling (aligned with Lambda limits)
+USAGE_PLAN_ID=$(aws apigateway create-usage-plan \
+  --name chat-usage-plan \
+  --description "Usage plan for chat API with rate limiting aligned to Lambda limits" \
+  --throttle "{ \"rateLimit\": 1.67, \"burstLimit\": 10 }" \
+  --quota "{ \"limit\": 1000, \"period\": \"DAY\" }" \
+  --endpoint-url=http://localhost:4566 | jq -r '.id')
+
+# Create API key
+API_KEY_ID=$(aws apigateway create-api-key \
+  --name chat-api-key \
+  --description "API key for chat service" \
+  --enabled \
+  --endpoint-url=http://localhost:4566 | jq -r '.id')
+
+# Associate API key with usage plan
+aws apigateway create-usage-plan-key \
+  --usage-plan-id $USAGE_PLAN_ID \
+  --key-id $API_KEY_ID \
+  --key-type API_KEY \
+  --endpoint-url=http://localhost:4566
+
 # Create deployment
 aws apigateway create-deployment \
   --rest-api-id $API_ID \
@@ -173,3 +206,5 @@ aws apigateway create-deployment \
 
 echo "LocalStack setup complete!"
 echo "API Gateway URL: http://localhost:4566/restapis/$API_ID/prod/_user_request_/profile"
+echo "Chat API URL: http://localhost:4566/restapis/$API_ID/prod/_user_request_/chat"
+echo "API Key: $(aws apigateway get-api-key --api-key $API_KEY_ID --include-value --endpoint-url=http://localhost:4566 | jq -r '.value')"

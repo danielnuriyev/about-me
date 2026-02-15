@@ -12,7 +12,7 @@ if ! aws sts get-caller-identity &> /dev/null; then
 fi
 
 # Get the S3 bucket name from Pulumi outputs
-BUCKET_NAME=$(cd infrastructure && pulumi stack output bucketName 2>/dev/null || echo "about-me-site-dev")
+BUCKET_NAME=$(cd infrastructure && pulumi stack output bucketName 2>/dev/null || echo "dn-about-me-dev")
 
 # Build the frontend first
 ./scripts/build-frontend.sh

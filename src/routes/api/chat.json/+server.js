@@ -1,7 +1,67 @@
 // API endpoint to proxy chat requests to LocalStack Lambda via API Gateway
 
+// Function to check if request comes from a browser
+function isBrowserRequest(request) {
+	const userAgent = request.headers.get('user-agent') || '';
+
+	// Reject known non-browser clients
+	const nonBrowserPatterns = [
+		/^curl\//i,
+		/^postman/i,
+		/^python-requests\//i,
+		/^wget\//i,
+		/^axios\//i,
+		/^fetch$/i,  // standalone fetch without browser context
+		/^node-fetch\//i,
+		/^undici\//i,
+		/^got\//i,
+		/^httpie\//i,
+		/^insomnia\//i,
+		/^paw\//i,
+		/^restclient\//i
+	];
+
+	// Check for non-browser patterns
+	for (const pattern of nonBrowserPatterns) {
+		if (pattern.test(userAgent)) {
+			return false;
+		}
+	}
+
+	// Require Mozilla/5.0 prefix (standard for modern browsers)
+	if (!userAgent.includes('Mozilla/5.0')) {
+		return false;
+	}
+
+	// Check for common browser engines
+	const browserPatterns = [
+		/AppleWebKit/i,
+		/Gecko/i,
+		/Trident/i,  // IE
+		/Edge/i
+	];
+
+	return browserPatterns.some(pattern => pattern.test(userAgent));
+}
+
 export async function POST({ request }) {
 	try {
+		// Check if request comes from a browser
+		if (!isBrowserRequest(request)) {
+			return new Response(
+				JSON.stringify({
+					error: 'Access denied',
+					message: 'This endpoint only accepts requests from web browsers'
+				}),
+				{
+					status: 403,
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				}
+			);
+		}
+
 		const body = await request.json();
 		const apiGatewayId = 'pvlq39vakd';
 

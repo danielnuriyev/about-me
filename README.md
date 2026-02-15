@@ -1,536 +1,67 @@
 # About Me Website
 
-A single-page website about Daniel Nuriyev built with Svelte, featuring an AI-powered chat assistant using AWS Bedrock. Deployed on AWS using S3, CloudFront, API Gateway, and Lambda with full local development support via LocalStack.
-
-## Table of Contents
-
-- [Features](#features)
-- [Architecture](#architecture)
-- [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
-- [Local Development Setup](#local-development-setup)
-- [Testing](#testing)
-- [Deployment to AWS](#deployment-to-aws)
-- [Configuration](#configuration)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-
-## Features
-
-- **GitHub Dark Theme**: Authentic GitHub dark theme with proper colors and styling
-- **Personal Profile**: Clean, responsive design showcasing personal information with GitHub profile photo
-- **Social Links**: Direct links to LinkedIn, GitHub, and engineering blog
-- **AI Spokesbot**: Interactive chat assistant powered by AWS Bedrock using Amazon Nova Micro with security protections (10 messages per IP per hour)
-- **Conversation Logging**: All chat interactions stored in DynamoDB for monitoring and analytics
-- **Serverless Backend**: Two Lambda functions handling profile data and chat interactions
-- **Security Protections**: Rate limiting, origin validation, and content filtering
-- **Global CDN**: CloudFront distribution for fast content delivery
-- **Local Development**: Complete LocalStack setup for offline development with real AWS Bedrock testing option
-
-## Architecture
-
-- **Frontend**: Svelte with JavaScript
-- **Backend**: AWS Lambda + API Gateway
-- **AI Chat**: AWS Bedrock integration (Amazon Nova Micro)
-- **Hosting**: S3 + CloudFront
-- **Infrastructure**: Pulumi (Infrastructure as Code)
-- **Local Development**: LocalStack with Docker
-- **Deployment**: GitHub Actions CI/CD
+A personal website with an AI-powered chat assistant built with Svelte, AWS Lambda, and Amazon Bedrock.
 
 ## Prerequisites
 
-- **Node.js 18+** - Required for Svelte development
-- **Docker & Docker Compose** - Required for LocalStack local development
-- **AWS CLI** - Optional but recommended for AWS operations
-- **Git** - For cloning the repository
+- **Node.js 18+**
+- **Docker & Docker Compose** (for local development)
+- **AWS CLI** (optional, for AWS operations)
+- **Git**
 
-## Quick Start
+## Local Development
 
-### 1. Download and Install
-
+### 1. Install Dependencies
 ```bash
-# Clone the repository
 git clone <repository-url>
 cd about-me
-
-# Install dependencies
 npm install
 ```
 
-### 2. Start Local Development
-
+### 2. Start Local Development Environment
 ```bash
 # Start LocalStack (AWS services locally)
 docker-compose up -d
 ./scripts/localstack-init.sh
 
-# Start the development server
-npm run dev
-```
-
-### 3. Open in Browser
-
-Visit `http://localhost:5173` to see your local development site.
-
-## Local Development Setup
-
-### Basic Setup (LocalStack Mock)
-
-1. **Start LocalStack services**:
-   ```bash
-   docker-compose up -d
-   ./scripts/localstack-init.sh
-   ```
-
-2. **Start development server**:
-   ```bash
-   npm run dev
-   ```
-
-### Lambda Development Workflow
-
-After making changes to Lambda function code:
-
-#### Quick Redeploy (Recommended)
-```bash
-# Redeploy specific Lambda function
-./scripts/redeploy-lambda.sh chat     # For chat Lambda changes
-./scripts/redeploy-lambda.sh profile  # For profile Lambda changes
-
-# Or use interactive menu
-./scripts/redeploy-lambda.sh
-```
-
-This automatically:
-- Installs dependencies (`npm install`)
-- Creates deployment package (`zip`)
-- Updates Lambda function in LocalStack
-- Cleans up temporary files
-
-### Advanced Setup (Real AWS Bedrock)
-
-⚠️ **Important**: LocalStack does not support Bedrock mocking. For real AWS Bedrock testing with session tokens (SAML/corporate credentials):
-
-#### Quick Start
-
-```bash
-# 1. Authenticate with your corporate SSO (if needed)
-aws sso login --profile default
-
-# 2. Check if your session token is still valid
-./scripts/bedrock-session-wrapper.sh check
-
-# 3. Deploy LocalStack with real Bedrock
-./scripts/setup-bedrock.sh real
-
-# 4. Start development
-npm run dev
-```
-
-#### Session Token Management
-
-Your AWS session token (from SAML/corporate SSO) expires after ~1 hour. When it expires:
-
-```bash
-# Check if token is still valid
-./scripts/bedrock-session-wrapper.sh check
-
-# Extract current credentials and see expiration time
-./scripts/bedrock-session-wrapper.sh extract
-
-# If expired, re-authenticate and redeploy
-aws sso login --profile default
-./scripts/setup-bedrock.sh real
-```
-
-**Prerequisites for Real AWS Bedrock**:
-- AWS account with Bedrock access enabled
-- Access to Amazon Nova Micro model (may require explicit request in AWS console)
-- IAM permissions for `bedrock:InvokeModel`
-- Corporate accounts may have additional AI service restrictions
-
-**Note**: Without proper Bedrock access, chat will show fallback responses.
-
-### Development Workflow
-
-#### Frontend Development
-1. **Edit files** (e.g., `src/lib/Chat.svelte`, `src/routes/+page.svelte`)
-2. **Save changes** - Dev server auto-rebuilds and hot-reloads
-3. **View changes** instantly in browser (no manual refresh needed)
-4. **Check console** for any errors or warnings
-
-#### Backend Development
-1. **Make code changes** (e.g., edit `backend/lambda-chat/index.js`)
-2. **Redeploy Lambda**: `./scripts/redeploy-lambda.sh chat`
-3. **Test changes**: Use chat interface at `http://localhost:5174/`
-4. **Repeat** for iterative development
-
-#### Troubleshooting Frontend Changes
-
-**If changes don't appear in browser:**
-```bash
-# Check if dev server is running
-curl -s http://localhost:5173 || curl -s http://localhost:5174
-
-# If not running, start it
-npm run dev
-
-# Force browser refresh (Ctrl+Shift+R)
-# Or clear Vite cache and restart
-rm -rf .svelte-kit && npm run dev
-```
-
-**Expected behavior:**
-- Save file → Terminal shows: `[vite] hot updated: /src/lib/Chat.svelte`
-- Browser updates instantly (Hot Module Replacement)
-- No full page reload needed
-
-### Project Structure
-
-```
-about-me/
-├── src/
-│   ├── lib/Chat.svelte     # Chat component
-│   └── routes/+page.svelte # Main about me page
-├── backend/
-│   ├── lambda/             # Profile API Lambda
-│   └── lambda-chat/        # Chat API Lambda with Bedrock integration
-├── infrastructure/         # Pulumi IaC (S3, CloudFront, API Gateway, Lambda, DynamoDB)
-├── scripts/               # Deployment scripts
-│   ├── deploy.sh          # Complete deployment
-│   ├── deploy-infrastructure.sh
-│   ├── deploy-lambda.sh
-│   └── deploy-frontend.sh
-├── static/                # Static assets (images, etc.)
-├── .github/workflows/     # CI/CD pipelines
-├── docker-compose.yml     # LocalStack configuration
-├── scripts/setup-bedrock.sh      # Bedrock mode switcher
-└── scripts/localstack-init.sh    # LocalStack resource initialization
-```
-
-## Testing
-
-### Local Testing
-
-#### Test Profile API
-```bash
-# Get API Gateway ID first
-curl -s http://localhost:4566/restapis | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4
-
-# Test profile endpoint (replace YOUR_API_ID)
-curl http://localhost:4566/restapis/YOUR_API_ID/prod/_user_request_/profile
-```
-
-#### Test Chat API
-```bash
-# Test chat endpoint
-curl -X POST http://localhost:4566/restapis/YOUR_API_ID/prod/_user_request_/chat \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:5173" \
-  -d '{"message": "Hello, tell me about Daniel"}'
-```
-
-### Frontend Testing
-
-```bash
 # Start development server
 npm run dev
-
-# Open http://localhost:5173 in browser
-# Test the chat interface and profile display
 ```
 
-### Code Quality Testing
+### 3. Open Browser
+Visit `http://localhost:5173` to see your local site.
 
+### Making Changes
+
+**Frontend**: Edit files in `src/` and changes auto-reload in browser.
+
+**Backend**: Edit Lambda functions in `backend/`, then redeploy:
 ```bash
-# Lint code
-npm run lint
-
-# Fix linting issues
-npm run lint:fix
-
-# Format code
-npm run format
-
-# Type checking (if using TypeScript)
-npm run check
+./scripts/redeploy-lambda.sh chat
 ```
 
-### Utility Scripts
+## Deploy to AWS
 
-Located in `scripts/` directory:
-
-- `bedrock-session-wrapper.sh` - Manage AWS session token for LocalStack with real Bedrock
-  - `./scripts/bedrock-session-wrapper.sh extract` - Show current credentials and expiration
-  - `./scripts/bedrock-session-wrapper.sh check` - Check if session token is still valid
-
-- `redeploy-lambda.sh` - Quick redeploy of Lambda functions after code changes
-  - `./scripts/redeploy-lambda.sh chat` - Redeploy chat Lambda function
-  - `./scripts/redeploy-lambda.sh profile` - Redeploy profile Lambda function
-  - `./scripts/redeploy-lambda.sh` - Interactive selection menu
-
-- `configure-limits.sh` - Configure concurrency and rate limiting for production
-  - `./scripts/configure-limits.sh lambda 10` - Set Lambda concurrency to 10 (default)
-  - `./scripts/configure-limits.sh apigateway 3 9` - Set API Gateway rate (3/s) and burst (9/s, default)
-  - `./scripts/configure-limits.sh status` - Check current limits
-
-- `setup-bedrock.sh` - Switch between LocalStack mock and real AWS Bedrock
-  - `./scripts/setup-bedrock.sh mock` - Use LocalStack mocks (default, free)
-  - `./scripts/setup-bedrock.sh real` - Use real AWS Bedrock (requires active session)
-
-- `scripts/localstack-init.sh` - Initialize LocalStack with AWS resources
-
-- `deploy.sh`, `deploy-infrastructure.sh`, `deploy-lambda.sh`, `deploy-frontend.sh` - Production deployment scripts
-
-## Deployment to AWS
-
-### Option 1: Automated Deployment (Recommended)
-
-#### CI/CD via GitHub Actions
+### Automated Deployment (Recommended)
 
 1. **Configure GitHub Secrets**:
-   - Go to your repository Settings → Secrets and variables → Actions
-   - Add `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+   - Add `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` to repository secrets
 
 2. **Deploy**:
    ```bash
-   # Push to main branch to trigger automatic deployment
    git add .
-   git commit -m "Ready for deployment"
+   git commit -m "Deploy to production"
    git push origin main
    ```
 
-#### Manual Automated Deployment
+### Manual Deployment
 
 ```bash
-# Deploy everything at once
+# Deploy everything
 ./scripts/deploy.sh
+
+# Or step-by-step:
+./scripts/deploy-infrastructure.sh
+./scripts/deploy-lambda.sh
+./scripts/deploy-frontend.sh
 ```
-
-### Option 2: Manual Step-by-Step Deployment
-
-1. **Deploy Infrastructure**:
-   ```bash
-   ./scripts/deploy-infrastructure.sh
-   ```
-
-2. **Deploy Lambda Functions**:
-   ```bash
-   ./scripts/deploy-lambda.sh
-   ```
-
-3. **Deploy Frontend**:
-   ```bash
-   ./scripts/deploy-frontend.sh
-   ```
-
-### Post-Deployment Configuration
-
-1. **Update Domain DNS**:
-   - Point your domain to the CloudFront distribution URL
-   - The script will output the CloudFront URL
-
-2. **Configure Environment Variables**:
-   ```bash
-   # Set production environment variables
-   export ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
-   export CHAT_LOGS_TABLE=chat-conversations
-   ```
-
-3. **Update Content**:
-   - Replace placeholder photo in `static/`
-   - Update personal information in `backend/lambda/index.js`
-   - Customize styling in `src/routes/+page.svelte`
-
-### Verify Deployment
-
-```bash
-# Check website is live
-curl https://yourdomain.com
-
-# Test API endpoints
-curl https://your-api-gateway-url/prod/_user_request_/profile
-```
-
-## Configuration
-
-### Environment Files
-
-#### .env.local (Local Development)
-```bash
-VITE_API_GATEWAY_ID=pvlq39vakd
-```
-- Contains the LocalStack API Gateway ID for your current deployment
-- Update this when you restart LocalStack (new ID is generated each time)
-- See the deployment output of `./scripts/setup-bedrock.sh real` for the new ID
-
-### Environment Variables
-
-#### Production Environment Variables
-```bash
-ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
-CHAT_LOGS_TABLE=chat-conversations
-```
-
-#### Local Development Variables
-```bash
-USE_REAL_BEDROCK=true  # Enable real AWS Bedrock (requires AWS credentials)
-AWS_PROFILE=default    # AWS CLI profile to use
-```
-
-### Concurrency & Rate Limiting Configuration
-
-#### Lambda Concurrency Limits
-```bash
-# Default: 10 concurrent executions (set in infrastructure/index.ts)
-# Override via CLI:
-aws lambda put-function-concurrency \
-  --function-name about-me-chat-api \
-  --reserved-concurrent-executions 10
-
-# Via helper script:
-./scripts/configure-limits.sh lambda 10
-```
-
-#### API Gateway Throttling
-```bash
-# Default: 3 requests/second, 9 burst (set in infrastructure/index.ts)
-# Override via CLI:
-aws apigateway create-usage-plan \
-  --name chat-usage-plan \
-  --throttle-rate-limit 3 \
-  --throttle-burst-limit 9 \
-  --api-stages apiId=your-api-id,stage=prod
-
-# Via helper script:
-./scripts/configure-limits.sh apigateway 3 9
-```
-
-### Customization
-
-1. **Personal Information**: Edit `backend/lambda/index.js`
-2. **Profile Photo**: Replace `static/placeholder.jpg` and update `src/routes/+page.svelte`
-3. **Styling**: Modify CSS in `src/routes/+page.svelte`
-4. **AI Context**: Update `DANIEL_CONTEXT` in `backend/lambda-chat/index.js`
-
-### Security Features
-
-#### Chat API Protection
-- **Origin Validation**: Only allowed domains accepted
-- **Rate Limiting**: 10 messages per IP per hour (frontend + backend)
-- **Concurrency Limits**: Lambda: 10 concurrent executions, API Gateway: 3/sec with 9 burst
-- **Content Filtering**: Blocks malicious scripts and content
-- **Request Limits**: 1000 chars/message, 20 messages in context
-- **CORS Restrictions**: Strict cross-origin policies
-
-#### Conversation Logging
-- **DynamoDB Storage**: All conversations with metadata
-- **Monitoring**: Track usage patterns and anomalies
-- **Compliance**: Audit trail for all interactions
-
-## Troubleshooting
-
-### Common Issues
-
-#### LocalStack Won't Start
-```bash
-# Check Docker is running
-docker --version
-docker-compose --version
-
-# Clean restart
-docker-compose down
-docker system prune -f
-docker-compose up -d
-```
-
-#### Bedrock Authentication Errors
-- Corporate AWS accounts may restrict Bedrock access
-- Request model access in AWS Bedrock console
-- Check IAM permissions include `bedrock:InvokeModel`
-
-#### Port Conflicts
-```bash
-# Check what's using port 4566
-lsof -i :4566
-
-# Change LocalStack port in docker-compose.yml if needed
-```
-
-#### Build Errors
-```bash
-# Clear node modules and reinstall
-rm -rf node_modules package-lock.json
-npm install
-
-# Clear build cache
-npm run build -- --emptyOutDir
-```
-
-### LocalStack Services
-
-- **Lambda**: Serverless function execution
-- **API Gateway**: REST API management
-- **S3**: File storage and static hosting
-- **DynamoDB**: NoSQL database for chat logs
-- **IAM**: Identity and access management
-- **STS**: Security token service
-
-**Note**: LocalStack does not support Bedrock mocking. Use real AWS Bedrock for AI functionality.
-
-#### LocalStack Concurrency Limits
-LocalStack supports some concurrency features:
-- Lambda reserved concurrency via `put-function-concurrency`
-- Basic API Gateway throttling (limited support)
-- Custom rate limiting via Lambda function code (implemented)
-
-For full production concurrency control, deploy to AWS with proper limits.
-
-### Monitoring & Adjusting Limits
-
-#### Check Current Usage
-```bash
-# Lambda concurrency metrics
-aws cloudwatch get-metric-statistics \
-  --namespace AWS/Lambda \
-  --metric-name ConcurrentExecutions \
-  --dimensions Name=FunctionName,Value=about-me-chat-api \
-  --start-time 2024-01-01T00:00:00Z \
-  --end-time 2024-12-31T23:59:59Z \
-  --period 3600 \
-  --statistics Maximum
-
-# API Gateway throttling metrics
-aws cloudwatch get-metric-statistics \
-  --namespace AWS/ApiGateway \
-  --metric-name Count \
-  --dimensions Name=ApiName,Value=about-me-api Name=Method,Value=POST Name=Resource,Value=/chat \
-  --start-time 2024-01-01T00:00:00Z \
-  --end-time 2024-12-31T23:59:59Z \
-  --period 3600 \
-  --statistics Sum
-```
-
-#### Adjust Limits Based on Usage
-- **High concurrency**: Increase Lambda reserved concurrency
-- **High traffic**: Increase API Gateway throttling limits
-- **Cost optimization**: Decrease limits during low-traffic periods
-- **Performance issues**: Monitor CloudWatch metrics and adjust accordingly
-
-### Getting Help
-
-1. Check LocalStack logs: `docker logs localstack_main`
-2. Verify AWS credentials: `aws sts get-caller-identity`
-3. Test individual services using AWS CLI with `--endpoint-url=http://localhost:4566`
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test locally with LocalStack
-5. Submit a pull request
-
-## License
-
-ISC License - see LICENSE file for details.

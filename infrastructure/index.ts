@@ -3,10 +3,47 @@ import * as aws from "@pulumi/aws";
 import * as awsx from "@pulumi/awsx";
 
 // Create an S3 bucket for static website hosting
-const siteBucket = new aws.s3.Bucket("about-me-site", {
+const siteBucket = new aws.s3.Bucket("dn-about-me", {
     website: {
         indexDocument: "index.html",
     },
+});
+
+// Custom Domain Configuration
+const domainName = "danielnuriyev.info";
+const apiDomainName = `api.${domainName}`;
+const wwwDomainName = `www.${domainName}`;
+
+// Get existing Route 53 Hosted Zone
+const hostedZone = aws.route53.getZone({ name: domainName });
+
+// Create ACM Certificate for the domain and subdomains
+const certificate = new aws.acm.Certificate("site-cert", {
+    domainName: domainName,
+    validationMethod: "DNS",
+    subjectAlternativeNames: [wwwDomainName, apiDomainName],
+    tags: {
+        Project: "about-me",
+    },
+});
+
+// Create DNS records for validation (all domains)
+const certValidationRecords = certificate.domainValidationOptions.apply(options =>
+    options.map((option, index) =>
+        new aws.route53.Record(`cert-validation-${index}`, {
+            name: option.resourceRecordName,
+            type: option.resourceRecordType,
+            zoneId: hostedZone.then(zone => zone.zoneId),
+            records: [option.resourceRecordValue],
+            ttl: 60,
+        })
+    )
+);
+
+// Validate the certificate
+const certValidation = new aws.acm.CertificateValidation("cert-validation", {
+    certificateArn: certificate.arn,
+    validationRecordFqdns: certValidationRecords.apply(records => records.map(record => record.fqdn)),
 });
 
 // Create a CloudFront Origin Access Identity
@@ -36,10 +73,11 @@ const bucketPolicy = new aws.s3.BucketPolicy("about-me-bucket-policy", {
 
 // Create a CloudFront distribution
 const cdn = new aws.cloudfront.Distribution("about-me-cdn", {
+    defaultRootObject: "index.html", // Serve index.html for SPA routing
     origins: [
         {
             domainName: siteBucket.bucketRegionalDomainName,
-            originId: "S3-about-me-site",
+            originId: "S3-dn-about-me",
             s3OriginConfig: {
                 originAccessIdentity: originAccessIdentity.cloudfrontAccessIdentityPath,
             },
@@ -48,7 +86,7 @@ const cdn = new aws.cloudfront.Distribution("about-me-cdn", {
     enabled: true,
     isIpv6Enabled: true,
     defaultCacheBehavior: {
-        targetOriginId: "S3-about-me-site",
+        targetOriginId: "S3-dn-about-me",
         viewerProtocolPolicy: "redirect-to-https",
         allowedMethods: ["GET", "HEAD", "OPTIONS"],
         cachedMethods: ["GET", "HEAD"],
@@ -68,8 +106,11 @@ const cdn = new aws.cloudfront.Distribution("about-me-cdn", {
         },
     },
     viewerCertificate: {
-        cloudfrontDefaultCertificate: true,
+        acmCertificateArn: certificate.arn,
+        sslSupportMethod: "sni-only",
+        minimumProtocolVersion: "TLSv1.2_2021",
     },
+    aliases: [domainName, wwwDomainName],
 });
 
 // Create IAM role for Lambda
@@ -160,21 +201,35 @@ const chatLogsTable = new aws.dynamodb.Table("chat-conversations", {
     billingMode: "PAY_PER_REQUEST",
 });
 
+// Create DynamoDB table for rate limiting
+const rateLimitsTable = new aws.dynamodb.Table("rate-limits", {
+    attributes: [
+        { name: "clientIP", type: "S" }
+    ],
+    hashKey: "clientIP",
+    billingMode: "PAY_PER_REQUEST",
+    // Enable TTL for automatic cleanup of old entries
+    streamViewType: "NEW_AND_OLD_IMAGES", // Required for TTL
+});
+
 // DynamoDB policy for Lambda
 const dynamoPolicy = new aws.iam.Policy("chat-dynamo-policy", {
-    policy: chatLogsTable.arn.apply(tableArn => JSON.stringify({
+    policy: pulumi.all([chatLogsTable.arn, rateLimitsTable.arn]).apply(([chatLogsArn, rateLimitsArn]) => JSON.stringify({
         Version: "2012-10-17",
         Statement: [
             {
                 Effect: "Allow",
                 Action: [
                     "dynamodb:PutItem",
+                    "dynamodb:GetItem",
+                    "dynamodb:UpdateItem",
                     "dynamodb:Query",
                     "dynamodb:Scan"
                 ],
                 Resource: [
-                    tableArn,
-                    `${tableArn}/index/*`
+                    chatLogsArn,
+                    `${chatLogsArn}/index/*`,
+                    rateLimitsArn
                 ]
             }
         ]
@@ -202,7 +257,13 @@ const chatLambdaFunction = new aws.lambda.Function("about-me-chat-api", {
     handler: "index.handler",
     role: chatLambdaRole.arn,
     timeout: 30, // Longer timeout for AI responses
-    reservedConcurrentExecutions: 10, // Limit to 10 concurrent executions
+    reservedConcurrentExecutions: 10, // Allow more concurrent executions (API Gateway will throttle)
+    environment: {
+        variables: {
+            CHAT_LOGS_TABLE: chatLogsTable.name,
+            RATE_LIMIT_TABLE: rateLimitsTable.name,
+        }
+    }
 });
 
 // Create API Gateway
@@ -240,6 +301,14 @@ const chatMethod = new aws.apigateway.Method("chat-method", {
     authorization: "NONE",
 });
 
+// Create OPTIONS method for CORS
+const chatOptionsMethod = new aws.apigateway.Method("chat-options-method", {
+    restApi: api.id,
+    resourceId: chatResource.id,
+    httpMethod: "OPTIONS",
+    authorization: "NONE",
+});
+
 // Create API Gateway integration
 const profileIntegration = new aws.apigateway.Integration("profile-integration", {
     restApi: api.id,
@@ -260,11 +329,66 @@ const chatIntegration = new aws.apigateway.Integration("chat-integration", {
     uri: chatLambdaFunction.invokeArn,
 });
 
+// Create OPTIONS integration for CORS
+const chatOptionsIntegration = new aws.apigateway.Integration("chat-options-integration", {
+    restApi: api.id,
+    resourceId: chatResource.id,
+    httpMethod: chatOptionsMethod.httpMethod,
+    type: "MOCK",
+    requestTemplates: {
+        "application/json": "{\"statusCode\": 200}"
+    },
+});
+
+// Create OPTIONS method response for CORS
+const chatOptionsMethodResponse = new aws.apigateway.MethodResponse("chat-options-response", {
+    restApi: api.id,
+    resourceId: chatResource.id,
+    httpMethod: chatOptionsMethod.httpMethod,
+    statusCode: "200",
+    responseModels: {
+        "application/json": "Empty",
+    },
+    responseParameters: {
+        "method.response.header.Access-Control-Allow-Headers": true,
+        "method.response.header.Access-Control-Allow-Methods": true,
+        "method.response.header.Access-Control-Allow-Origin": true,
+    },
+});
+
+// Create OPTIONS integration response for CORS
+const chatOptionsIntegrationResponse = new aws.apigateway.IntegrationResponse("chat-options-integration-response", {
+    restApi: api.id,
+    resourceId: chatResource.id,
+    httpMethod: chatOptionsMethod.httpMethod,
+    statusCode: "200",
+    responseParameters: {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+    },
+}, { dependsOn: [chatOptionsIntegration, chatOptionsMethodResponse] });
+
+// Create API Gateway Usage Plan with throttling limits
 // Create API Gateway deployment
-const deployment = new aws.apigateway.Deployment("api-deployment", {
+const deployment = new aws.apigateway.Deployment("api-deployment-v3", {
     restApi: api.id,
     stageName: "prod",
-}, { dependsOn: [profileIntegration, chatIntegration] });
+}, { dependsOn: [profileIntegration, chatIntegration, chatOptionsIntegration, chatOptionsIntegrationResponse] });
+
+// Create method-level throttling for chat endpoint
+const chatMethodThrottling = new aws.apigateway.MethodSettings("chat-method-throttling", {
+    restApi: api.id,
+    stageName: "prod",
+    methodPath: "*/*", // Apply to all methods
+    settings: {
+        throttlingRateLimit: 10,
+        throttlingBurstLimit: 20,
+        metricsEnabled: true,
+        loggingLevel: "INFO",
+        dataTraceEnabled: true,
+    },
+}, { dependsOn: [deployment] });
 
 // Create Lambda permission for API Gateway
 const lambdaPermission = new aws.lambda.Permission("api-lambda-permission", {
@@ -282,21 +406,95 @@ const chatLambdaPermission = new aws.lambda.Permission("chat-api-lambda-permissi
     sourceArn: pulumi.interpolate`${api.executionArn}/*/*`,
 });
 
-// Create API Gateway Usage Plan with throttling limits
+// Note: API Gateway enforces global limits (100/min), Lambda enforces per-IP limits (10/min)
+// This provides defense in depth with fast rejection at gateway level
 const usagePlan = new aws.apigateway.UsagePlan("chat-usage-plan", {
     name: "chat-usage-plan",
-    description: "Usage plan for chat API with rate limiting",
+    description: "Usage plan for chat API with rate limiting aligned to Lambda limits",
     throttleSettings: {
-        rateLimit: 3,   // 3 requests per second
-        burstLimit: 9,  // 9 burst requests (3x rate limit)
+        rateLimit: 1.67, // ~1.67 requests per second (100 per minute to match global Lambda limit)
+        burstLimit: 10,   // 10 concurrent/burst requests
+    },
+    quotaSettings: {
+        limit: 1000,    // 1000 requests per day as additional safety net
+        offset: 0,
+        period: "DAY"
     },
     apiStages: [{
         apiId: api.id,
-        stage: deployment.stageName,
+        stage: "prod", // Use the known stage name
     }],
 });
 
-// Export the website URL, API URL, and DynamoDB table name
+// Create API Key for monitoring and potential future per-client limits
+const apiKey = new aws.apigateway.ApiKey("chat-api-key", {
+    name: "chat-api-key",
+    description: "API key for chat service monitoring",
+    enabled: true,
+});
+
+// Associate API key with usage plan
+const usagePlanKey = new aws.apigateway.UsagePlanKey("chat-usage-plan-key", {
+    keyId: apiKey.id,
+    keyType: "API_KEY",
+    usagePlanId: usagePlan.id,
+});
+
+// Create API Gateway Custom Domain
+const apiCustomDomain = new aws.apigateway.DomainName("api-custom-domain", {
+    domainName: apiDomainName,
+    certificateArn: certificate.arn,
+    endpointConfiguration: {
+        types: "EDGE",
+    },
+}, { dependsOn: [certValidation] });
+
+// Map Custom Domain to API
+const apiMapping = new aws.apigateway.BasePathMapping("api-mapping", {
+    restApi: api.id,
+    stageName: "prod",
+    domainName: apiCustomDomain.domainName,
+});
+
+// Create Route 53 A records for the website and API
+const rootRecord = new aws.route53.Record("root-record", {
+    name: domainName,
+    type: "A",
+    zoneId: hostedZone.then(zone => zone.zoneId),
+    aliases: [{
+        name: cdn.domainName,
+        zoneId: cdn.hostedZoneId,
+        evaluateTargetHealth: false,
+    }],
+});
+
+const wwwRecord = new aws.route53.Record("www-record", {
+    name: wwwDomainName,
+    type: "A",
+    zoneId: hostedZone.then(zone => zone.zoneId),
+    aliases: [{
+        name: cdn.domainName,
+        zoneId: cdn.hostedZoneId,
+        evaluateTargetHealth: false,
+    }],
+});
+
+const apiRecord = new aws.route53.Record("api-record", {
+    name: apiDomainName,
+    type: "A",
+    zoneId: hostedZone.then(zone => zone.zoneId),
+    aliases: [{
+        name: apiCustomDomain.cloudfrontDomainName,
+        zoneId: apiCustomDomain.cloudfrontZoneId,
+        evaluateTargetHealth: false,
+    }],
+});
+
+// Export the website URL, API URL, and DynamoDB table names
 export const websiteUrl = cdn.domainName;
+export const customWebsiteUrl = `https://${domainName}`;
+export const customApiUrl = `https://${apiDomainName}`;
 export const apiUrl = deployment.invokeUrl;
 export const chatLogsTableName = chatLogsTable.name;
+export const rateLimitsTableName = rateLimitsTable.name;
+export const apiKeyValue = apiKey.value;

@@ -1,4 +1,5 @@
 .svelte-kit
+build
 *.zip
 node_modules
 .env.local

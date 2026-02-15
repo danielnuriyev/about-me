@@ -1,0 +1,22 @@
+User-agent: *
+Allow: /
+
+# Block access to admin or sensitive areas (if any)
+# Disallow: /admin/
+# Disallow: /private/
+
+# Allow all major search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Sitemap
+Sitemap: https://danielnuriyev.info/sitemap.xml

@@ -1,13 +1,70 @@
 <script>
 	// Basic about me page component
 	import Chat from '$lib/Chat.svelte';
+
+	// SEO: Structured Data for Person profile
+	import { onMount } from 'svelte';
+
+	onMount(() => {
+		// Add JSON-LD structured data
+		const script = document.createElement('script');
+		script.type = 'application/ld+json';
+		script.textContent = JSON.stringify({
+			"@context": "https://schema.org",
+			"@type": "Person",
+			"name": "Daniel Nuriyev",
+			"worksFor": {
+				"@type": "Organization",
+				"name": "SimpliSafe"
+			},
+			"description": "To learn more, follow the links or chat with my spokesbot below.",
+			"image": "https://avatars.githubusercontent.com/danielnuriyev",
+			"url": "https://danielnuriyev.info",
+			"sameAs": [
+				"https://www.linkedin.com/in/danielnuriyev/",
+				"https://github.com/danielnuriyev",
+				"https://danielnuriyev.github.io/engineering-blog/"
+			],
+			"knowsAbout": [
+				"Data Engineering",
+				"Python",
+				"SQL",
+				"AWS",
+				"Machine Learning",
+				"Data Pipelines",
+				"ETL",
+				"Apache Spark",
+				"Dagster",
+				"Amazon EKS",
+				"AWS CDK",
+				"Data Architecture"
+			],
+			"alumniOf": [
+				"SimpliSafe",
+				"InsightSquared",
+				"Cimpress",
+				"NetApp",
+				"JNJ Mobile",
+				"Answers.com",
+				"Zoomix",
+				"Amdocs"
+			]
+		});
+		document.head.appendChild(script);
+
+		// Add additional meta tags for SEO
+		const metaDescription = document.createElement('meta');
+		metaDescription.name = 'description';
+		metaDescription.content = 'Daniel Nuriyev - Senior Manager of Data Engineering at SimpliSafe. To learn more, follow the links or chat with my spokesbot below.';
+		document.head.appendChild(metaDescription);
+	});
 </script>
 
 <main class="container">
 	<div class="profile" id="profile">
-		<img src="https://avatars.githubusercontent.com/danielnuriyev" alt="Profile photo" class="profile-photo" />
+		<img src="https://avatars.githubusercontent.com/danielnuriyev" alt="Daniel Nuriyev - About Me" class="profile-photo" />
 		<h1>Daniel Nuriyev</h1>
-		<p class="bio">To learn more about me, please, follow the links below or talk with my AI spokesbot.</p>
+		<p class="bio">To learn more, follow the links or chat with my spokesbot below.</p>
 
 		<div class="social-links">
 			<a href="https://www.linkedin.com/in/danielnuriyev/" target="_blank" rel="noopener noreferrer" class="social-link linkedin" aria-label="LinkedIn Profile">
@@ -84,7 +141,7 @@
 
 	h1 {
 		font-size: 2.5rem;
-		margin: 0;
+		margin: 0 0 0.5rem 0;
 		color: #f0f6fc;
 		font-weight: 600;
 		background: linear-gradient(135deg, #58a6ff, #79c0ff);
@@ -96,10 +153,11 @@
 	.bio {
 		font-size: 1.2rem;
 		color: #c9d1d9;
-		max-width: 500px;
+		max-width: 600px;
 		line-height: 1.6;
 		opacity: 0.9;
 		text-align: left;
+		margin-bottom: 1.5rem;
 	}
 
 	.social-links {
