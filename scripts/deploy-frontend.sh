@@ -12,10 +12,13 @@ if ! aws sts get-caller-identity &> /dev/null; then
 fi
 
 # Get the S3 bucket name from Pulumi outputs
-BUCKET_NAME=$(cd infrastructure && pulumi stack output bucketName 2>/dev/null || echo "dn-about-me-dev")
+BUCKET_NAME=$(cd infrastructure && pulumi stack output bucketName 2>/dev/null || echo "dn-about-me-95400e2")
 
 # Build the frontend first
-./scripts/build-frontend.sh
+echo "Building Svelte frontend..."
+npm install
+npm run build
+echo "Frontend build complete. Output in build/ directory."
 
 # Sync build directory to S3
 echo "Uploading to S3 bucket: $BUCKET_NAME"

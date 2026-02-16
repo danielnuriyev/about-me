@@ -1,6 +1,6 @@
 # About Me Website
 
-A personal website with an AI-powered chat assistant built with Svelte, AWS Lambda, and Amazon Bedrock.
+A personal website with an AI-powered chat assistant built with Svelte, Amazon Bedrock with Nova Lite and a number of additional AWS services (Route 53, API Gateway, CloudFront, S3, Lambda, CloudWatch, DynamoDB).
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ npm install
 
 ### 2. Start Local Development Environment
 ```bash
-# Start LocalStack (AWS services locally)
+# Start LocalStack (AWS services locally) - includes CloudWatch Logs
 docker-compose up -d
 ./scripts/localstack-init.sh
 
@@ -39,6 +39,23 @@ Visit `http://localhost:5173` to see your local site.
 ```bash
 ./scripts/redeploy-lambda.sh chat
 ```
+
+**Logs**: View Lambda logs through LocalStack CloudWatch:
+```bash
+./scripts/view-logs.sh chat                    # View last 50 chat API logs
+./scripts/view-logs.sh chat --lines 20         # View last 20 chat API logs
+./scripts/view-logs.sh --list                  # List all log groups
+```
+
+**Bedrock Mode**: Switch between LocalStack mock and real AWS Bedrock:
+```bash
+./scripts/setup-bedrock.sh real     # Use real AWS Bedrock (requires AWS credentials)
+./scripts/setup-bedrock.sh mock     # Use LocalStack mock (default)
+```
+
+**Note**: These commands automatically update the API ID in frontend code and restart LocalStack. Remember to restart your frontend development server (`npm run dev`) after running these commands.
+
+When using real AWS Bedrock, session tokens expire. If you get authentication errors, re-run `./scripts/setup-bedrock.sh real` to refresh credentials.
 
 ## Deploy to AWS
 

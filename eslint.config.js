@@ -39,7 +39,6 @@ export default [
 			'backend/lambda-chat/node_modules/',
 			'infrastructure/bin/',
 			'infrastructure/.pulumi/',
-			'backend/lambda/lambda-function.zip',
 			'backend/lambda-chat/chat-lambda-function.zip'
 		]
 	}

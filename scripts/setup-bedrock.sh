@@ -52,6 +52,40 @@ sleep 5
 
 ./scripts/localstack-init.sh
 
+# Update the API ID in hooks.server.js
+update_frontend_api_id() {
+    local hooks_file="./src/hooks.server.js"
+    if [ ! -f "$hooks_file" ]; then
+        echo "⚠️  hooks.server.js not found, skipping API ID update"
+        return
+    fi
+
+    # Get the new API ID from LocalStack
+    local new_api_id
+    new_api_id=$(aws apigateway get-rest-apis --endpoint-url=http://localhost:4566 | jq -r '.items[0].id' 2>/dev/null)
+
+    if [ -z "$new_api_id" ] || [ "$new_api_id" = "null" ]; then
+        echo "⚠️  Could not retrieve API ID from LocalStack, skipping API ID update"
+        return
+    fi
+
+    # Extract current hardcoded API ID from the file
+    local old_api_id
+    old_api_id=$(grep "restapis/" "$hooks_file" | sed 's/.*restapis\/\([^/]*\).*/\1/' | head -1)
+
+    if [ -n "$old_api_id" ] && [ "$old_api_id" != "$new_api_id" ]; then
+        echo "🔄 Updating API ID from $old_api_id to $new_api_id in hooks.server.js"
+        sed -i.bak "s/restapis\/$old_api_id/restapis\/$new_api_id/g" "$hooks_file"
+        echo "✅ Updated API ID in hooks.server.js"
+    else
+        echo "✅ API ID is already up to date or not found in hooks.server.js"
+    fi
+}
+
+echo ""
+echo "🔄 Updating API ID in frontend code..."
+update_frontend_api_id
+
 echo ""
 echo "✅ Setup complete!"
 if [ "$USE_REAL_BEDROCK" = "true" ]; then
@@ -59,3 +93,7 @@ if [ "$USE_REAL_BEDROCK" = "true" ]; then
 else
     echo "🎭 Using LocalStack mock - AI responses will be simulated"
 fi
+
+echo ""
+echo "💡 Remember to restart your frontend development server if it's running:"
+echo "   npm run dev"

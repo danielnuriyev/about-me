@@ -1,5 +1,6 @@
 .svelte-kit
 build
+*.bak
 *.zip
 node_modules
 .env.local

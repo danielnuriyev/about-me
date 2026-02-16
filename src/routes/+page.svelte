@@ -217,6 +217,10 @@
 	}
 
 	@media (max-width: 640px) {
+		.container {
+			padding: 1rem;
+		}
+
 		.social-links {
 			gap: 1rem;
 		}

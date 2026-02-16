@@ -66,11 +66,6 @@ redeploy_lambda() {
                 fi
             fi
             ;;
-        "profile")
-            lambda_dir="$PROJECT_ROOT/backend/lambda"
-            function_name="about-me-api"
-            zip_file="lambda-function.zip"
-            ;;
         *)
             error "Unknown Lambda function: $lambda_name"
             echo "Available options: chat, profile"
@@ -141,23 +136,18 @@ redeploy_lambda() {
 # Interactive selection
 select_lambda() {
     echo "Which Lambda function would you like to redeploy?"
-    echo "1) chat    - Chat API with Bedrock integration"
-    echo "2) profile - Profile API"
+    echo "1) chat - Chat API with Bedrock integration"
     echo ""
 
     while true; do
-        read -p "Enter choice (1-2): " choice
+        read -p "Enter choice (1): " choice
         case $choice in
             1)
                 redeploy_lambda "chat"
                 break
                 ;;
-            2)
-                redeploy_lambda "profile"
-                break
-                ;;
             *)
-                warning "Please enter 1 or 2"
+                warning "Please enter 1"
                 ;;
         esac
     done
@@ -193,11 +183,9 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     echo ""
     echo "Lambda functions:"
     echo "  chat                 # Chat API with Bedrock"
-    echo "  profile              # Profile API"
     echo ""
     echo "Examples:"
     echo "  $0 chat             # Redeploy chat Lambda"
-    echo "  $0 profile          # Redeploy profile Lambda"
     echo "  $0                  # Show interactive menu"
     exit 0
 fi

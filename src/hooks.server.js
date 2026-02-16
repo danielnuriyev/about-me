@@ -67,7 +67,7 @@ export async function handle({ event, resolve }) {
 
 		try {
 			const body = await event.request.json();
-			const chatApiUrl = 'http://localhost:4566/restapis/ibpaj1kk82/prod/_user_request_/chat';
+			const chatApiUrl = 'http://localhost:4566/restapis/l7rtlliv16/prod/_user_request_/chat';
 
 			const response = await fetch(chatApiUrl, {
 				method: 'POST',

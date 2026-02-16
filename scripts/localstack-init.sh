@@ -18,19 +18,6 @@ export AWS_ENDPOINT_URL=http://localhost:4566
 echo "Creating S3 bucket..."
 aws s3 mb s3://dn-about-me --endpoint-url=http://localhost:4566
 
-# Create Lambda function
-echo "Creating Lambda function..."
-cd backend/lambda
-zip -r lambda-function.zip .
-
-aws lambda create-function \
-  --function-name about-me-api \
-  --runtime nodejs18.x \
-  --role arn:aws:iam::000000000000:role/lambda-role \
-  --handler index.handler \
-  --zip-file fileb://lambda-function.zip \
-  --endpoint-url=http://localhost:4566
-
 # Create Chat Lambda function
 echo "Creating Chat Lambda function..."
 cd ../lambda-chat
@@ -125,31 +112,6 @@ API_ID=$(aws apigateway get-rest-apis --endpoint-url=http://localhost:4566 | jq 
 
 # Get root resource ID
 ROOT_ID=$(aws apigateway get-resources --rest-api-id $API_ID --endpoint-url=http://localhost:4566 | jq -r '.items[0].id')
-
-# Create profile resource
-PROFILE_RESOURCE_ID=$(aws apigateway create-resource \
-  --rest-api-id $API_ID \
-  --parent-id $ROOT_ID \
-  --path-part profile \
-  --endpoint-url=http://localhost:4566 | jq -r '.id')
-
-# Create profile method
-aws apigateway put-method \
-  --rest-api-id $API_ID \
-  --resource-id $PROFILE_RESOURCE_ID \
-  --http-method GET \
-  --authorization-type NONE \
-  --endpoint-url=http://localhost:4566
-
-# Create profile integration
-aws apigateway put-integration \
-  --rest-api-id $API_ID \
-  --resource-id $PROFILE_RESOURCE_ID \
-  --http-method GET \
-  --type AWS_PROXY \
-  --integration-http-method POST \
-  --uri arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:000000000000:function:about-me-api/invocations \
-  --endpoint-url=http://localhost:4566
 
 # Create chat resource
 CHAT_RESOURCE_ID=$(aws apigateway create-resource \

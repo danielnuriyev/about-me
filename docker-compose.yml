@@ -9,7 +9,7 @@ services:
     environment:
       # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
       DEBUG: 1
-      SERVICES: lambda,apigateway,s3,cloudfront,iam,dynamodb
+      SERVICES: lambda,apigateway,s3,cloudfront,iam,dynamodb,logs
       DATA_DIR: /tmp/localstack/data
       DOCKER_HOST: unix:///var/run/docker.sock
       # Share AWS credentials with Lambda containers

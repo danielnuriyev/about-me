@@ -249,7 +249,8 @@ async function getRateLimitData(clientIP) {
 
 async function updateRateLimit(clientIP, minute, minuteCount, day, dayCount) {
     try {
-        const command = new UpdateItemCommand({
+        // First try to update assuming the maps exist
+        const updateCommand = new UpdateItemCommand({
             TableName: RATE_LIMIT_TABLE,
             Key: {
                 clientIP: { S: clientIP }
@@ -266,7 +267,26 @@ async function updateRateLimit(clientIP, minute, minuteCount, day, dayCount) {
             }
         });
 
-        await dynamoClient.send(command);
+        try {
+            await dynamoClient.send(updateCommand);
+        } catch (updateError) {
+            // If the map doesn't exist, we'll get a ValidationException
+            if (updateError.name === 'ValidationException') {
+                // Initialize the item with the first values
+                const putCommand = new PutItemCommand({
+                    TableName: RATE_LIMIT_TABLE,
+                    Item: {
+                        clientIP: { S: clientIP },
+                        minutelyLimits: { M: { [minute.toString()]: { N: minuteCount.toString() } } },
+                        dailyLimits: { M: { [day]: { N: dayCount.toString() } } },
+                        lastUpdated: { N: Date.now().toString() }
+                    }
+                });
+                await dynamoClient.send(putCommand);
+            } else {
+                throw updateError;
+            }
+        }
     } catch (error) {
         console.error('Error updating rate limit:', error);
         // Don't throw - allow request to continue even if rate limiting fails
@@ -594,9 +614,15 @@ Assistant:`;
 };
 
 async function invokeBedrockModel(prompt) {
+    // If not using real Bedrock (LocalStack mode), return mock response
+    if (!useRealBedrock) {
+        console.log('Using LocalStack mock mode - returning simulated response');
+        return 'I apologize, but I\'m having trouble connecting to my knowledge base right now. Daniel is a skilled software developer with expertise in full-stack development, cloud infrastructure, and modern web technologies. Feel free to ask me about his background, skills, or projects!';
+    }
+
     try {
-        // Using Amazon Nova Micro - lightweight, fast, and cost-effective model
-        const modelId = 'amazon.nova-micro-v1:0';
+        // Using Amazon Nova Lite - lightweight, fast, and cost-effective model
+        const modelId = 'amazon.nova-lite-v1:0';
 
         const requestBody = {
             messages: [
