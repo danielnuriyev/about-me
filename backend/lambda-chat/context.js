@@ -12,11 +12,17 @@ Given the high impact and complexity, the team puts a strong emphasis on develop
 The platform connects to 60 data sources, runs 800 raw pipelines ingesting 5TB per day, 800 analytics pipelines. The pipelines run 8000 times per day.
 Tech: AWS services including IaC w/ CDK,  k8s w/ EKS, S3, Athena & Trino, Redshift, AI integration w/ Bedrock & ChatGPT. CICD with GitHub Actions. Orchestration w/ Dagster. Visualization w/ Tableau. Data catalog w/ DataHub. Data exploration w/ Hex. Python, SQL. Java for Athena UDFs. AI agents for coding.
 Data is ingested from Kafka, Kinesis Firehose, MongoDB, PostgreSQL, MySQL, DynamoDB, SFTP, BigQuery, Kinesis Firehose, RESTful APIs.
-We use agile development methodology, 
+We use agile development methodology.
+
+Bewteen 2018 and 2020 Daniel worked at InsightSquared in Boston, MA.
+His first project was to help decide what to do with the legacy product.
+After that he lead a team of 7 full stack engineers building the new product. 
+The tech stack was ReactJS, JavaScript, NodeJS, DynamoDB and other AWS services.
+After that he established the data science team with the goal of forecasting sales.
+The tech stack was Python, pandas, skikit-learn.
 
 Previously:
-- InsightSquared/Mediafly (2018-2020): Data Science and Backend Engineer, led Data Science team
-- Cimpress/Vistaprint (2016-2018): Lead Data Platform Engineer, Big Data Analytics
+- Cimpress (2016-2018): Lead Data Platform Engineer, Big Data Analytics
 - NetApp (2012-2016): Principal Software Engineer, ML enhancements for storage systems
 - JNJ Mobile/MocoSpace (2010-2012): Senior Software Engineer, mobile social platform
 - Answers.com (2005-2008): Team Lead, Automatic Question Answering systems
