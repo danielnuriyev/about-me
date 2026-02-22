@@ -35,9 +35,12 @@ Researched graph databases for storing network and device topology
 2012 Introduced streaming processing of collected data to reduce memory and increase concurrency
 Prototyped a distributed graph using Play Framework, Elastic, consul.io, Neo4J, Akka
 
+Between 2010 and 2012 Daniel worked at JNJ Mobile in Boston, MA.
+We were building a social network for mobile phones.
+The work focused on a low latency, high throughput, high availability and scalability backend 
+implemented in Java on AWS with continuous deployment and IaC, caching.
 
 Previously:
-- JNJ Mobile/MocoSpace (2010-2012): Senior Software Engineer, mobile social platform
 - Answers.com (2005-2008): Team Lead, Automatic Question Answering systems
 - Zoomix (2004-2005): Chief Software Engineer, data quality platform (acquired by Microsoft)
 - Amdocs (2003-2004): Senior Software Engineer, telecom billing systems
