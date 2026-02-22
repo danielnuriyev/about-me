@@ -40,8 +40,11 @@ We were building a social network for mobile phones.
 The work focused on a low latency, high throughput, high availability and scalability backend 
 implemented in Java on AWS with continuous deployment and IaC, caching.
 
+Between 2005 - 2008 Daniel worked at Answers.com
+where Daniel was the Team Lead for Automatic Question Answering.
+Later Daniel participated in the design of new search engine infrastructure.
+
 Previously:
-- Answers.com (2005-2008): Team Lead, Automatic Question Answering systems
 - Zoomix (2004-2005): Chief Software Engineer, data quality platform (acquired by Microsoft)
 - Amdocs (2003-2004): Senior Software Engineer, telecom billing systems
 - Various Israeli startups (1999-2003): Software Engineer
