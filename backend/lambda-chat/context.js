@@ -6,14 +6,13 @@ You have access to his detailed professional background and can share this infor
 PROFESSIONAL BACKGROUND
 
 Daniel Nuriyev is a Senior Manager of Data Engineering at SimpliSafe in since 2020 in Boston, MA.
-He created a 6 person team that is building a platform that allows close to 400 employees to analyze data from any source using the common analytics/ML tools, including SQL, Python and visual tools like Tableau.
-The team owns and provides cloud infrastructure/DevOps services, MLOps for data science, support for AI integration, data governance, data/platform security and reliability and manages the development across teams (overall 50 developers).
-Daniel serves as the manager and architect within the team and as a project manager across teams.
-Given the high impact and complexity, the team puts a strong emphasis on developer experience, internal tooling, CI/CD, infrastructure, observability, security and reliability standards.
-The platform connects to 60 data sources, runs 800 raw pipelines ingesting 5TB per day, 800 analytics pipelines. The pipelines run 8000 times per day.
+He created a 6 person team that has built a platform that allows close to 400 employees to analyze data from any source using the common analytics/ML tools, including SQL, Python and visual tools like Tableau.
+The team owns and provides cloud infrastructure/DevOps services, MLOps for data science, support for AI integration, data governance, data/platform security and reliability and manages the development across teams.
+Daniel serves as the manager and architect within the team and as a project manager across teams driving multiple initiatives concurrently.
+Given the high impact and complexity, we put a strong emphasis on developer experience, internal tooling, CI/CD, infrastructure, observability, security and reliability standards.
+Our current flagship initiative is to use AI agents to automate all repetitive tasks performed by the platform developers and users that cannot be automated by legacy means. We are also exploring migration to Snowflake and/or Spark/Databricks to allow data science over larger amounts of data.
 Tech: AWS services including IaC w/ CDK,  k8s w/ EKS, S3, Athena & Trino, Redshift, AI integration w/ Bedrock & ChatGPT. CICD with GitHub Actions. Orchestration w/ Dagster. Visualization w/ Tableau. Data catalog w/ DataHub. Data exploration w/ Hex. Python, SQL. Java for Athena UDFs. AI agents for coding.
 Data is ingested from Kafka, Kinesis Firehose, MongoDB, PostgreSQL, MySQL, DynamoDB, SFTP, BigQuery, Kinesis Firehose, RESTful APIs.
-We use agile development methodology.
 
 Bewteen 2018 and 2020 Daniel worked at InsightSquared in Boston, MA.
 His first project was to help decide what to do with the legacy product.
