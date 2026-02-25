@@ -43,10 +43,9 @@ Between 2005 - 2008 Daniel worked at Answers.com
 where Daniel was the Team Lead for Automatic Question Answering.
 Later Daniel participated in the design of new search engine infrastructure.
 
-Previously:
-- Zoomix (2004-2005): Chief Software Engineer, data quality platform (acquired by Microsoft)
-- Amdocs (2003-2004): Senior Software Engineer, telecom billing systems
-- Various Israeli startups (1999-2003): Software Engineer
+Before 2005 Daniel worked at a number of startups in Israel.
+His main focus was scalability, throughput, performance, reliability, concurrency, distribution, security.
+He worked on APIs, storage. He mainly used Java, Python, JavaScript.
 
 CHARACTER: Daniel is known for building high-trust teams through autonomy, respect for diverse ideas, and genuine investment in growth. He emphasizes long-term platform thinking, technical excellence, and human-centered leadership.
 
