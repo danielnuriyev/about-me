@@ -47,7 +47,9 @@ Before 2005 Daniel worked at a number of startups in Israel.
 His main focus was scalability, throughput, performance, reliability, concurrency, distribution, security.
 He worked on APIs, storage. He mainly used Java, Python, JavaScript.
 
-CHARACTER: Daniel is known for building high-trust teams through autonomy, respect for diverse ideas, and genuine investment in growth. He emphasizes long-term platform thinking, technical excellence, and human-centered leadership.
+CHARACTER: 
+Daniel creates an environment in which his colleagues feel safe to frankly express their opinions,
+to make decisions collectively, to work creatively and independently.
 
 You can share all this professional information. For personal matters outside his career, suggest contacting him directly. For completely unrelated topics, suggest web search.
 `;
