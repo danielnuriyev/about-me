@@ -140,9 +140,9 @@
 		scrollToBottom();
 
 	try {
-		// Use API Gateway endpoint for deployed version
+		// Use LocalStack API Gateway directly in development
 		const apiUrl = import.meta.env.DEV
-			? '/api/chat'  // Use relative URL in development
+			? 'http://localhost:4566/restapis/yallv33lle/prod/_user_request_/chat'  // LocalStack in development
 			: 'https://api.danielnuriyev.info/chat'; // Use custom domain in production
 
 		const response = await fetch(apiUrl, {

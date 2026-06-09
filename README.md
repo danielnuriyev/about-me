@@ -20,6 +20,8 @@ cd about-me
 npm install
 ```
 
+**Note**: `npm install` installs packages **locally** in the project directory (`node_modules/`) rather than globally. This is the standard and recommended approach for Node.js projects, ensuring each project has its own dependencies and versions.
+
 ### 2. Start Local Development Environment
 ```bash
 # Start LocalStack (AWS services locally) - includes CloudWatch Logs
@@ -32,6 +34,10 @@ npm run dev
 
 ### 3. Open Browser
 Visit `http://localhost:5173` to see your local site.
+
+The chat functionality works in development mode with an intelligent AI assistant that can answer questions about Daniel's professional background, skills, experience, and current projects. The AI uses keyword-based responses trained on Daniel's detailed professional information.
+
+**Note**: For production deployment, the chat API will connect to real AWS services (Amazon Bedrock) in the cloud instead of LocalStack.
 
 ### Making Changes
 

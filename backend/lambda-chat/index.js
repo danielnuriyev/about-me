@@ -614,10 +614,50 @@ Assistant:`;
 };
 
 async function invokeBedrockModel(prompt) {
-    // If not using real Bedrock (LocalStack mode), return mock response
+    // If not using real Bedrock (LocalStack mode), return intelligent mock response
     if (!useRealBedrock) {
-        console.log('Using LocalStack mock mode - returning simulated response');
-        return 'I apologize, but I\'m having trouble connecting to my knowledge base right now. Daniel is a skilled software developer with expertise in full-stack development, cloud infrastructure, and modern web technologies. Feel free to ask me about his background, skills, or projects!';
+        console.log('Using LocalStack mock mode - returning intelligent simulated response');
+
+        // Simple keyword-based response system for development
+
+        // Extract just the user's question from the prompt
+        const humanMatch = prompt.match(/Human:\s*(.+?)(?:\n\nAssistant:|$)/s);
+        const userQuestion = humanMatch ? humanMatch[1].trim().toLowerCase() : prompt.toLowerCase();
+
+        if (userQuestion.includes('experience') || userQuestion.includes('background') || userQuestion.includes('career')) {
+            return 'Daniel has over 15 years of experience in software engineering and data platforms. He started his career working on startups in Israel, then moved to Boston where he worked at several companies including NetApp, Cimpress, InsightSquared, and currently SimpliSafe where he leads a data engineering team.';
+        }
+
+        if (userQuestion.includes('current') || userQuestion.includes('simplisafe') || userQuestion.includes('now')) {
+            return 'Daniel is currently a Senior Manager of Data Engineering at SimpliSafe in Boston, MA. He leads a 6-person team that provides cloud infrastructure, DevOps, MLOps, AI integration, data governance, and security services. They\'re currently working on automating repetitive tasks with AI agents and exploring migration to Snowflake/Databricks.';
+        }
+
+        if (userQuestion.includes('skills') || userQuestion.includes('technologies') || userQuestion.includes('tech')) {
+            return 'Daniel has extensive experience with AWS services (CDK, EKS, S3, Athena, Redshift, Bedrock), Python, SQL, Java, JavaScript, React, Node.js, Kubernetes, Kafka, Spark, and various data tools like Tableau, Dagster, and DataHub. He specializes in cloud infrastructure, data platforms, and AI integration.';
+        }
+
+        if (userQuestion.includes('education') || userQuestion.includes('degree') || userQuestion.includes('university')) {
+            return 'Daniel holds a Master\'s degree in Computer Science from the Technion - Israel Institute of Technology, one of the world\'s leading technical universities.';
+        }
+
+        if (userQuestion.includes('location') || userQuestion.includes('live') || userQuestion.includes('based')) {
+            return 'Daniel is based in Boston, Massachusetts. He has lived in the US since 2010, working in the Boston area tech scene.';
+        }
+
+        if (userQuestion.includes('projects') || userQuestion.includes('what do you do') || userQuestion.includes('work on')) {
+            return 'Currently at SimpliSafe, Daniel\'s team is building a data platform that serves nearly 400 employees, enabling them to analyze data from any source using SQL, Python, and visualization tools. They\'re also working on AI agents to automate development tasks and exploring modern data warehouse solutions.';
+        }
+
+        if (userQuestion.includes('ai') || userQuestion.includes('artificial intelligence') || userQuestion.includes('machine learning')) {
+            return 'Daniel has extensive experience with AI integration, particularly using Amazon Bedrock and ChatGPT APIs. At SimpliSafe, his team is building AI agents to automate repetitive development and data tasks, and they provide MLOps support for data science teams.';
+        }
+
+        if (userQuestion.includes('hello') || userQuestion.includes('hi') || userQuestion.includes('hey')) {
+            return 'Hello! I\'m Daniel\'s AI assistant. I can tell you about his professional background, skills, experience, and current projects. What would you like to know about Daniel?';
+        }
+
+        // Default response for unrecognized questions
+        return 'Daniel is a Senior Manager of Data Engineering with extensive experience in cloud infrastructure, data platforms, and AI integration. He\'s passionate about building scalable systems and leading technical teams. Feel free to ask about his specific experience, skills, or current projects!';
     }
 
     try {
