@@ -208,7 +208,7 @@
 		// Add welcome message
 		messages = [{
 			role: 'assistant',
-			content: 'Hi! I\'m dAnIel, Daniel\'s AI spokesbot. Feel free to ask me anything about his professional skills.'
+			content: 'Hi! I\'m Daniel\'s AI spokesbot. Feel free to ask me anything about his professional skills.'
 		}];
 	});
 

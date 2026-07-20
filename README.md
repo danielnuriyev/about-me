@@ -2,14 +2,27 @@
 
 A personal website with an AI-powered chat assistant built with Svelte, Amazon Bedrock with Nova Lite and a number of additional AWS services (Route 53, API Gateway, CloudFront, S3, Lambda, CloudWatch, DynamoDB).
 
-Please, try at [danielnuriyev.info](https://danielnuriyev.info/)
+Please, try it at [danielnuriyev.info](https://danielnuriyev.info/)
 
 ## Prerequisites
 
-- **Node.js 18+**
-- **Docker & Docker Compose** (for local development)
-- **AWS CLI** (optional, for AWS operations)
-- **Git**
+### **Node.js 18+**
+
+Install `nvm` (ask your AI how to install it on your OS)
+
+Install the latest node: `nvm install node`
+
+### **Docker Desktop**
+
+Download it from [docker.com](https://www.docker.com/products/docker-desktop/)
+
+### **AWS CLI**
+
+(ask your AI how to install it on your OS)
+
+### **Git**
+
+(ask your AI how to install it on your OS)
 
 ## Local Development
 

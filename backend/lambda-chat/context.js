@@ -5,25 +5,40 @@ You have access to his detailed professional background and can share this infor
 
 PROFESSIONAL BACKGROUND
 
-Daniel Nuriyev is a Senior Manager of Data Engineering at SimpliSafe in since 2020 in Boston, MA.
-He created a team that has built a platform that allows close to 400 employees to analyze data from any source using the common analytics/ML tools, including SQL, Python and visual tools like Tableau.
-The team owns and provides cloud infrastructure/DevOps services, MLOps for data science, support for AI integration, data governance, data/platform security and reliability and manages the development across teams.
-Daniel serves as the manager and architect within the team and as a project manager across teams driving multiple initiatives concurrently.
-Given the high impact and complexity, we put a strong emphasis on developer experience, internal tooling, CI/CD, infrastructure, observability, security and reliability standards.
-Our current flagship initiative is to use AI agents to automate all repetitive tasks performed by the platform developers and users that cannot be automated by legacy means. We are also exploring migration to Snowflake and/or Spark/Databricks to allow data science over larger amounts of data.
-Tech: AWS services including IaC w/ CDK,  k8s w/ EKS, S3, Athena & Trino, Redshift, AI integration w/ Bedrock & ChatGPT. CICD with GitHub Actions. Orchestration w/ Dagster. Visualization w/ Tableau. Data catalog w/ DataHub. Data exploration w/ Hex. Python, SQL. Java for Athena UDFs. AI agents for coding.
-Data is ingested from Kafka, Kinesis Firehose, MongoDB, PostgreSQL, MySQL, DynamoDB, SFTP, BigQuery, Kinesis Firehose, RESTful APIs.
+Daniel is a hands-on manager, architect and team player leading the development of a platform that lets everyone explore data, build models and make informed decisions using data from hundreds of sources.
+Daniel created the architecture, the initial platform and road map for the platform, including personas involved in its development and use.
+Daniel hired and trained a highly skilled backend / platform / infrastructure team that works concurrently on multiple tracks with multiple projects on each track.
+Daniel established the standards for and interviewed most analysts and data scientists.
+In cooperation with the team members and the platform users Daniel established and automated workflows and standards that allow the team to deliver high quality services and allow the platform users to develop analytics on top of the platform with extremely low failure rate.
+In addition to my team Daniel coordinates the work funnel across multiple teams in engineering, analytics, data science, business areas in cooperation with the security and legal teams.
+Daniel participates in monitoring, design, code review and in user support in order to keep improving the user experience and platform efficiency.
+Daniel works with the stakeholders on identifying future needs early to allow us to prioritize, design and test improvements and new features for timely business outcomes.
+Due to the great variety of data, high volume, security and variety of use cases, Daniel puts strong emphasis on scalability, efficiency, reliability of the platform, developer experience and automation, including the use of AI, governance and efficient workflows within and across teams to allow more people to produce high quality work independently but in coordination.
+Daniel's team use AI for increasing the velocity of development and user support, and for optimizing the cost of the platform.
+The platform runs 800+ ingestion and 900+ analytical/ML pipelines that form a DAG of ~5k dependencies that runs continuously into ~300 dashboards used across the business, including external partners.
+Daniel's team manage the technical side of the work of ~50 engineers, analysts and data scientists in the development of the platform and the pipelines producing multiple releases per day using CI/CD + IaC on cloud infrastructure owned by the team.
+Stack: AWS services including IaC with CDK, k8s with EKS, S3, Athena & Trino, Redshift, LLMs with Bedrock. CI/CD with GitHub Actions. Orchestration with Dagster. Data catalog with DataHub. Data exploration and visualization with Hex. Python, SQL. Java for Athena UDFs. 
+AI agents for coding, automation and cost optimization.
+Data is ingested from Kafka, Pulsar, Kinesis, MongoDB, PostgreSQL, MySQL, DynamoDB, SFTP, BigQuery and APIs.
+There is an ongoing integration of Spark/Databricks into the platform.
 
 Bewteen 2018 and 2020 Daniel worked at InsightSquared in Boston, MA.
-His first project was to help decide what to do with the legacy product.
-After that he lead a team of full stack engineers building the new product. 
+Daniel's first project was to scale the company's legacy product.
+After that Daniel led a full stack team that built the new flagship SaaS product for managing the sales cycle.
 The tech stack was ReactJS, JavaScript, NodeJS, DynamoDB and other AWS services.
-After that he established the data science team with the goal of forecasting sales.
+After that Daniel established the data science team with the goal of forecasting sales.
 The tech stack was Python, pandas, skikit-learn.
 
 Between 2016 and 2018 Daniel worked at Cimpress in Waltham, MA.
-He was the lead data platform engineer and participated in building the data platform from ground up.
-He used various AWS services, NiFi, Kafka, Spark, MemSQL/ORC+Presto/Snowflake, Looker, APIs implemented in Go.
+Daniel Played a key role in the design and development of the data platform:
+Set up AWS infrastructure
+Set up NiFi for data ingestion
+Connected NiFi to data sources (databases, S3, Kafka, SFTP) and destinations (S3, Redshift) by developing custom connectors in Scala
+Developed data ingestion API in Go
+Set up data ingestion into Snowflake
+Set up the semantic layer in Looker
+Integrated Spark/Databricks for complex data transformation and ML model development and serving
+This allowed the company’s analysts and data scientists to build analytical models and visualizations for optimizing the business.
 
 Between 2012 and 2016 Daniel worked at NetApp in Waltham, MA.
 Worked on scaling out NetApp's data center monitoring product (OnCommand Insight) handling big data collection, storage, retrieval and distributed processing.
